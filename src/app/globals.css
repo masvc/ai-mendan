@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+@theme inline {
+  --color-kizuna-green: #2E7D32;
+  --color-kizuna-light: #81C784;
+  --color-kizuna-dark: #1B5E20;
+  --color-sky-top: #87CEEB;
+  --color-sky-mid: #E0F0FF;
+  --color-grass-light: #C8E6C9;
+  --color-grass: #A5D6A7;
+}

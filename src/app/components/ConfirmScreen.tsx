@@ -1,8 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { Drawer } from "vaul";
-import { RotateCcw, Send, ClipboardList, User, Phone, CircleCheckBig, Home } from "lucide-react";
+import { RotateCcw, Send, User, Phone, CircleCheckBig, Home } from "lucide-react";
 import { QUESTIONS } from "./Interview";
 import { useInterviewStore } from "../store";
 
@@ -20,14 +19,12 @@ type Props = {
   onSubmit: () => void;
   onRestart: () => void;
   audioBlobs: Blob[];
-  showAnswers: boolean;
-  setShowAnswers: (v: boolean) => void;
 };
 
 export default function ConfirmScreen({
   answers, nickname, contact,
   onNicknameChange, onContactChange, onSubmit, onRestart,
-  audioBlobs, showAnswers, setShowAnswers,
+  audioBlobs,
 }: Props) {
   const store = useInterviewStore();
   const { register, handleSubmit, formState: { errors, isValid } } = useForm<FormData>({
@@ -44,7 +41,7 @@ export default function ConfirmScreen({
   return (
     <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-50 flex flex-col">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-slate-100 px-5 py-3 flex items-center justify-between">
+      <div className="bg-white border-b border-slate-100 px-5 py-3 flex items-center justify-between shrink-0">
         <button onClick={() => store.setScreen("title")} className="flex items-center gap-1 text-slate-400 active:text-slate-600 transition-colors">
           <Home size={18} />
           <span className="text-xs font-bold">トップ</span>
@@ -53,7 +50,7 @@ export default function ConfirmScreen({
         <div className="w-[60px]" />
       </div>
 
-      {/* メインコンテンツ */}
+      {/* スクロール領域 */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* 完了メッセージ */}
         <div className="px-6 pt-8 pb-6 text-center">
@@ -62,8 +59,8 @@ export default function ConfirmScreen({
           <p className="text-slate-400 text-base mt-3">連絡先を入力して提出してください</p>
         </div>
 
-        {/* フォーム */}
         <div className="px-5 pb-8 space-y-5">
+          {/* 連絡先フォーム */}
           <form id="contact-form" onSubmit={handleSubmit(doSubmit)} className="bg-white rounded-2xl px-6 py-7 space-y-7 shadow-sm">
             <div>
               <label className="flex items-center gap-2 text-slate-700 text-base font-bold mb-3">
@@ -93,40 +90,30 @@ export default function ConfirmScreen({
             </div>
           </form>
 
-          {/* 回答確認ボタン */}
-          <Drawer.Root open={showAnswers} onOpenChange={setShowAnswers}>
-            <Drawer.Trigger asChild>
-              <button className="w-full flex items-center justify-center gap-2.5 py-5 rounded-2xl text-base font-bold text-slate-500 bg-white shadow-sm active:translate-y-[1px] transition-all">
-                <ClipboardList size={20} />
-                回答内容を確認する
-              </button>
-            </Drawer.Trigger>
-            <Drawer.Portal>
-              <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex flex-col max-h-[85vh] rounded-t-2xl bg-white">
-                <div className="mx-auto w-12 h-1.5 bg-slate-200 rounded-full mt-3 mb-2" />
-                <Drawer.Title className="px-5 pb-3 text-slate-800 text-lg font-bold border-b border-slate-100">回答内容</Drawer.Title>
-                <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
-                  {QUESTIONS.map((q, i) => (
-                    <div key={i} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
-                      <p className="text-[#4a9e8e] text-xs font-bold mb-1.5">Q{i + 1}. {q.short}</p>
-                      <p className="text-slate-800 text-base leading-relaxed">{answers[i] || <span className="text-slate-300">（未回答）</span>}</p>
-                      {audioBlobs[i] && (
-                        <audio controls src={URL.createObjectURL(audioBlobs[i])} className="mt-3 w-full h-8" />
-                      )}
-                    </div>
-                  ))}
+          {/* 回答内容（インライン表示） */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100">
+              <h3 className="text-base font-bold text-slate-800">回答内容</h3>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {QUESTIONS.map((q, i) => (
+                <div key={i} className="px-6 py-5">
+                  <p className="text-[#4a9e8e] text-xs font-bold mb-2">Q{i + 1}. {q.short}</p>
+                  <p className="text-slate-800 text-base leading-relaxed">{answers[i] || <span className="text-slate-300">（未回答）</span>}</p>
+                  {audioBlobs[i] && (
+                    <audio controls src={URL.createObjectURL(audioBlobs[i])} className="mt-3 w-full h-10" />
+                  )}
                 </div>
-              </Drawer.Content>
-            </Drawer.Portal>
-          </Drawer.Root>
+              ))}
+            </div>
+          </div>
 
           <p className="text-slate-300 text-sm text-center">※提出後、2日以内にご連絡します</p>
         </div>
       </div>
 
       {/* 固定フッター */}
-      <div className="bg-white border-t border-slate-100 px-5 py-4 flex items-center gap-3">
+      <div className="bg-white border-t border-slate-100 px-5 py-4 flex items-center gap-3 shrink-0">
         <button onClick={onRestart} className="w-[70px] h-[70px] flex flex-col items-center justify-center rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-400 active:translate-y-[1px] active:bg-slate-50 transition-all shrink-0">
           <RotateCcw size={18} />
           <span className="mt-1">やり直す</span>

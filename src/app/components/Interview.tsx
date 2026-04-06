@@ -38,7 +38,6 @@ export default function Interview() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlobs, setAudioBlobs] = useState<Blob[]>([]);
-  const [showAnswers, setShowAnswers] = useState(false);
   const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const [hasHistory, setHasHistory] = useState(false);
 
@@ -298,8 +297,6 @@ export default function Interview() {
           onSubmit={submitContact}
           onRestart={() => { store.reset(); location.reload(); }}
           audioBlobs={audioBlobs}
-          showAnswers={showAnswers}
-          setShowAnswers={setShowAnswers}
         />
       </>
     );

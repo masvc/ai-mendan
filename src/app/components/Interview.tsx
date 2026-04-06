@@ -145,9 +145,11 @@ export default function Interview() {
   };
 
   const resumeInterview = () => {
+    const safeQ = Math.min(currentQ, QUESTIONS.length - 1);
     store.setScreen("question");
-    setDisplayText(QUESTIONS[currentQ].q);
-    playAudio(`q${currentQ + 1}`, QUESTIONS[currentQ].q);
+    store.setCurrentQ(safeQ);
+    setDisplayText(QUESTIONS[safeQ].q);
+    playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q);
     toast("続きから再開します");
   };
 

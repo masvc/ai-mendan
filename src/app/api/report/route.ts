@@ -5,9 +5,8 @@ const client = new Anthropic();
 
 export async function POST(req: Request) {
   try {
-    const { nickname, contact, answers } = await req.json() as {
+    const { nickname, answers } = await req.json() as {
       nickname: string;
-      contact: string;
       answers: { question: string; answer: string }[];
     };
 
@@ -25,7 +24,6 @@ export async function POST(req: Request) {
 以下はAI面接での応募者の回答です。この回答をもとに「応募者カルテ」を作成してください。
 
 応募者: ${nickname}
-連絡先: ${contact}
 
 ${answersText}
 

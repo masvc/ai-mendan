@@ -1,5 +1,5 @@
 #!/bin/bash
-# VOICEVOX 音声生成（青山龍星: speaker=13, 剣崎雌雄: speaker=20）
+# VOICEVOX 音声生成（青山龍星: speaker=13, 剣崎雌雄: speaker=21）
 API="http://localhost:50021"
 BASE_DIR="$(dirname "$0")/../public/audio"
 
@@ -20,7 +20,7 @@ generate_both() {
   local name="$1"
   local text="$2"
   generate 13 "$BASE_DIR/aoyama" "$name" "$text"
-  generate 20 "$BASE_DIR/kenzaki" "$name" "$text"
+  generate 21 "$BASE_DIR/kenzaki" "$name" "$text"
 }
 
 # あいさつ（2分割）

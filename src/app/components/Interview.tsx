@@ -242,6 +242,7 @@ export default function Interview() {
                 </div>
               </div>
               <Btn onClick={() => location.reload()} variant="ghost">もう一度体験する</Btn>
+              <p className="text-slate-400 text-[10px] text-center mt-4">音声: VOICEVOX:{voice === "aoyama" ? "青山龍星" : "剣崎雌雄"}</p>
             </div>
           )}
         </div>

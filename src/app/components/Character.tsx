@@ -36,28 +36,29 @@ export default function Character({ expression = "normal" }: CharacterProps) {
       </g>
 
       {/* 肩 */}
-      <ellipse cx="75" cy="290" rx="28" ry="35" fill="#2d3a4f" />
-      <ellipse cx="245" cy="290" rx="28" ry="35" fill="#2d3a4f" />
-      <rect x="40" y="298" width="38" height="110" rx="18" fill="#2d3a4f" />
-      <rect x="242" y="298" width="38" height="110" rx="18" fill="#2d3a4f" />
+      <ellipse cx="88" cy="285" rx="24" ry="30" fill="#2d3a4f" />
+      <ellipse cx="232" cy="285" rx="24" ry="30" fill="#2d3a4f" />
+      {/* 腕 */}
+      <rect x="52" y="295" width="34" height="100" rx="16" fill="#2d3a4f" />
+      <rect x="234" y="295" width="34" height="100" rx="16" fill="#2d3a4f" />
 
       {/* 手 */}
       {isHappy ? (
         <>
-          <circle cx="55" cy="400" r="20" fill="#F5C6A0" />
-          <g transform="translate(250, 370) rotate(-25)">
-            <circle cx="15" cy="0" r="20" fill="#F5C6A0" />
+          <circle cx="65" cy="390" r="18" fill="#F5C6A0" />
+          <g transform="translate(240, 365) rotate(-20)">
+            <circle cx="12" cy="0" r="18" fill="#F5C6A0" />
           </g>
         </>
       ) : (
         <>
-          <circle cx="59" cy="415" r="20" fill="#F5C6A0" />
-          <circle cx="261" cy="415" r="20" fill="#F5C6A0" />
+          <circle cx="69" cy="400" r="18" fill="#F5C6A0" />
+          <circle cx="251" cy="400" r="18" fill="#F5C6A0" />
         </>
       )}
 
       {/* 首 */}
-      <rect x="133" y="245" width="54" height="40" rx="10" fill="#F5C6A0" />
+      <rect x="135" y="220" width="50" height="65" rx="10" fill="#F5C6A0" />
 
       {/* 頭 */}
       <ellipse cx="160" cy="155" rx="76" ry="85" fill="#E8B892" />

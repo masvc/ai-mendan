@@ -8,7 +8,7 @@ import BottomBar from "./BottomBar";
 
 const CONFIG = {
   greeting1: "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間だよ。",
-  greeting2: "うまく話そうとしなくて大丈夫。あなたのペースで気持ちを聞かせてね。",
+  greeting2: "うまく話そうとしなくて大丈夫。落ち着いてゆっくり話してね。",
   completeMessage: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通すよ。2日以内に連絡するから、少しだけ待っててね。不安なことがあれば、いつでも気軽に聞いてね。",
 };
 
@@ -23,7 +23,7 @@ const QUESTIONS = [
   { q: "安心の絆で、どんな働き方をしてみたい？希望があれば聞かせて。", short: "希望の働き方", reaction: "ありがとう！全部聞けてよかった。" },
 ];
 
-type Screen = "title" | "question" | "confirm" | "complete";
+type Screen = "title" | "question" | "confirm" | "complete" | "myrecord";
 
 export default function Interview() {
   const [screen, setScreen] = useState<Screen>("title");
@@ -36,8 +36,12 @@ export default function Interview() {
   const [nickname, setNickname] = useState("");
   const [contact, setContact] = useState("");
   const [voice, setVoice] = useState<"aoyama" | "kenzaki">("aoyama");
+  const [showAnswers, setShowAnswers] = useState(false);
+  const [audioBlobs, setAudioBlobs] = useState<Blob[]>([]);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   // --- 音声 ---
   const playAudio = useCallback((audioKey: string, _text: string, onEnd?: () => void) => {
@@ -59,6 +63,7 @@ export default function Interview() {
   const prevTextRef = useRef("");
   const startRecording = useCallback(() => {
     stopAudio();
+    // Speech Recognition
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
     if (!API) { return; }
     prevTextRef.current = textInput ? textInput + " " : "";
@@ -66,9 +71,37 @@ export default function Interview() {
     r.onresult = (e: SpeechRecognitionEvent) => { let t = ""; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; setTextInput(prevTextRef.current + t); };
     r.onerror = () => { setIsRecording(false); };
     r.onend = () => setIsRecording(false);
-    recognitionRef.current = r; r.start(); setIsRecording(true);
+    recognitionRef.current = r; r.start();
+
+    // MediaRecorder（音声録音）
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      chunksRef.current = [];
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.start();
+      mediaRecorderRef.current = mr;
+    }).catch(() => {});
+
+    setIsRecording(true);
   }, [stopAudio, textInput]);
-  const stopRecording = useCallback(() => { const r = recognitionRef.current; if (r) { r.onresult = null; r.onend = null; r.onerror = null; r.stop(); recognitionRef.current = null; } setIsRecording(false); }, []);
+
+  const stopRecording = useCallback(() => {
+    // Speech Recognition停止
+    const r = recognitionRef.current;
+    if (r) { r.onresult = null; r.onend = null; r.onerror = null; r.stop(); recognitionRef.current = null; }
+    // MediaRecorder停止 → Blob保存
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state !== "inactive") {
+      mr.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setAudioBlobs(prev => [...prev, blob]);
+        mr.stream.getTracks().forEach(t => t.stop());
+        mediaRecorderRef.current = null;
+      };
+      mr.stop();
+    }
+    setIsRecording(false);
+  }, []);
 
   // --- フロー ---
   const startInterview = () => {
@@ -120,11 +153,39 @@ export default function Interview() {
     playAudio(`q${prev + 1}`, QUESTIONS[prev].q);
   };
 
-  const submitContact = () => {
+  const submitContact = async () => {
     if (!nickname.trim() || !contact.trim()) return;
+    const answersData = QUESTIONS.map((q, i) => ({ question: q.short, answer: answers[i] || "" }));
+
+    // 画面遷移＋音声再生
     setScreen("complete");
     setDisplayText(CONFIG.completeMessage);
     playAudio("complete", CONFIG.completeMessage);
+
+    // レポート生成（バックグラウンド）
+    let reportText = "";
+    try {
+      const res = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: nickname.trim(), contact: contact.trim(), answers: answersData }),
+      });
+      const data = await res.json();
+      reportText = data.report || "";
+    } catch { /* ignore */ }
+
+    // localStorageに保存
+    const record = {
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+      nickname: nickname.trim(),
+      contact: contact.trim(),
+      answers: answersData,
+      report: reportText,
+    };
+    const history = JSON.parse(localStorage.getItem("ai-mendan-history") || "[]");
+    history.push(record);
+    localStorage.setItem("ai-mendan-history", JSON.stringify(history));
   };
 
   const expression: "normal" | "smile" | "happy" | "talking" =
@@ -154,10 +215,18 @@ export default function Interview() {
             ))}
           </div>
         </div>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-4">
           <button onClick={startInterview} className="w-[140px] h-[140px] flex items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all">
             はじめる
           </button>
+          {typeof window !== "undefined" && localStorage.getItem("ai-mendan-history") && (
+            <button onClick={() => setScreen("myrecord" as Screen)} className="text-sm text-slate-400 underline underline-offset-2">
+              提出済みの回答を見る
+            </button>
+          )}
+        </div>
+        <div className="text-center">
+          <p className="text-slate-300 text-xs">※デモ用: <a href="/admin" className="underline">管理画面はこちら</a>（本番では非表示）</p>
         </div>
       </div>
     );
@@ -171,36 +240,85 @@ export default function Interview() {
           <h2 className="text-slate-800 text-lg font-bold">回答の確認・提出</h2>
           <p className="text-slate-400 text-base mt-1">内容を確認し、連絡先を入力して提出してください</p>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4">
-          <div className="space-y-4 mb-6">
-            {QUESTIONS.map((q, i) => (
-              <div key={i}>
-                <p className="text-slate-400 text-base font-bold mb-1">Q{i + 1}. {q.short}</p>
-                <p className="text-slate-700 text-base leading-relaxed">{answers[i] || "（未回答）"}</p>
-                {i < QUESTIONS.length - 1 && <div className="border-b border-slate-100 mt-4" />}
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-slate-200 pt-5 space-y-3">
-            <p className="text-slate-800 text-base font-bold">連絡先</p>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4">
+          <div className="bg-slate-50 rounded-xl px-5 py-5 space-y-4">
+            <p className="text-slate-800 text-base font-bold text-center">連絡先</p>
             <div>
-              <label className="text-slate-500 text-base block mb-1">ニックネーム</label>
+              <label className="text-slate-500 text-sm block mb-1">ニックネーム <span className="text-red-400">*</span></label>
               <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="例：たろう" className="vn-input" />
             </div>
             <div>
-              <label className="text-slate-500 text-base block mb-1">電話番号 または LINE ID</label>
+              <label className="text-slate-500 text-sm block mb-1">電話番号 または LINE ID <span className="text-red-400">*</span></label>
               <input type="text" value={contact} onChange={e => setContact(e.target.value)} placeholder="例：090-xxxx-xxxx" className="vn-input" />
             </div>
           </div>
+          <button onClick={() => setShowAnswers(true)} className="w-full py-4 rounded-xl text-base font-bold text-slate-500 border-2 border-slate-200 active:translate-y-[1px] transition-all shadow-[0_2px_0_#e2e8f0] active:shadow-none">
+            回答内容を確認する
+          </button>
         </div>
-        <div className="px-5 pb-8 pt-4 flex justify-center gap-4 border-t border-slate-100">
-          <button onClick={submitContact} disabled={!nickname.trim() || !contact.trim()} className="w-[140px] h-[140px] flex items-center justify-center rounded-3xl font-bold text-base bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-40">
+
+        {showAnswers && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowAnswers(false)}>
+            <div className="w-full max-w-[430px] max-h-[80vh] bg-white rounded-t-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="px-5 pt-5 pb-3 flex justify-between items-center border-b border-slate-100">
+                <p className="text-slate-800 text-lg font-bold">回答内容</p>
+                <button onClick={() => setShowAnswers(false)} className="text-slate-400 text-2xl leading-none">&times;</button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                {QUESTIONS.map((q, i) => (
+                  <div key={i} className="bg-slate-50 rounded-xl px-5 py-4 text-center">
+                    <p className="text-slate-400 text-sm font-bold mb-2">Q{i + 1}. {q.short}</p>
+                    <p className="text-slate-700 text-base leading-relaxed">{answers[i] || "（未回答）"}</p>
+                    {audioBlobs[i] && (
+                      <audio controls src={URL.createObjectURL(audioBlobs[i])} className="mt-2 w-full h-8" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="bg-white/70 backdrop-blur-md border-t border-slate-100 px-6 py-6 flex justify-around items-center">
+          <button onClick={() => location.reload()} className="w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold border-2 border-slate-200 text-slate-400 shadow-[0_2px_0_#e2e8f0] active:translate-y-[1px] active:shadow-none transition-all">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            <span className="mt-1">もう一度</span>
+          </button>
+          <button onClick={submitContact} disabled={!nickname.trim() || !contact.trim()} className="w-[90px] h-[90px] flex items-center justify-center rounded-2xl font-bold text-base bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-40">
             提出する
           </button>
-          <button onClick={() => location.reload()} className="w-[85px] h-[85px] flex flex-col items-center justify-center rounded-2xl font-bold text-base border-2 border-slate-200 text-slate-400 shadow-[0_2px_0_#e2e8f0] active:translate-y-[1px] active:shadow-none transition-all">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-            やり直す
-          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== 自分の回答記録 =====
+  if (screen === "myrecord") {
+    const history = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("ai-mendan-history") || "[]") as { date: string; nickname: string; answers: { question: string; answer: string }[] }[] : [];
+    const latest = history[history.length - 1];
+    return (
+      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col">
+        <div className="px-5 pt-6 pb-4 flex justify-between items-center">
+          <h2 className="text-slate-800 text-lg font-bold">提出済みの回答</h2>
+          <button onClick={() => setScreen("title")} className="text-sm text-slate-400 underline">戻る</button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-3">
+          {latest ? (
+            <>
+              <div className="bg-slate-50 rounded-xl px-5 py-3 flex justify-between items-center">
+                <p className="text-slate-700 text-sm font-bold">{latest.nickname}</p>
+                <p className="text-slate-400 text-xs">{new Date(latest.date).toLocaleDateString("ja-JP")}</p>
+              </div>
+              {latest.answers.map((a, i) => (
+                <div key={i} className="bg-slate-50 rounded-xl px-5 py-4 text-center">
+                  <p className="text-slate-400 text-sm font-bold mb-2">Q{i + 1}. {a.question}</p>
+                  <p className="text-slate-700 text-base leading-relaxed">{a.answer || "（未回答）"}</p>
+                </div>
+              ))}
+              <p className="text-slate-300 text-xs text-center pt-2">※内容はスタッフが確認し、2日以内にご連絡します</p>
+            </>
+          ) : (
+            <p className="text-slate-400 text-center py-16">まだ提出記録がありません</p>
+          )}
         </div>
       </div>
     );
@@ -235,21 +353,6 @@ export default function Interview() {
             textInput={textInput}
             isRecording={isRecording}
           />
-        )}
-
-        {screen === "complete" && (
-          <div className="bg-white/80 backdrop-blur-md px-5 py-4 rounded-2xl">
-            <p className="text-slate-800 font-bold text-lg mb-2">AI要約レポート（デモ）</p>
-            <p className="text-slate-500 text-base mb-2">{nickname} / {contact}</p>
-            <div className="space-y-1.5 text-base text-slate-600 leading-relaxed">
-              <p><span className="font-bold text-slate-700">価値観:</span> チームワーク重視。人の役に立つことにやりがい。</p>
-              <p><span className="font-bold text-slate-700">希望:</span> 安定した環境で長く働きたい。</p>
-              <p><span className="font-bold text-slate-700">総合:</span> 二次面接を推奨。</p>
-            </div>
-            <p className="text-slate-400 text-base text-center mt-3">
-              VOICEVOX:{voice === "aoyama" ? "青山龍星" : "剣崎雌雄"}
-            </p>
-          </div>
         )}
 
         <BottomBar

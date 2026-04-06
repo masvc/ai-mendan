@@ -25,7 +25,7 @@ generate_both() {
 
 # あいさつ（2分割）
 generate_both "greeting1" "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間だよ。"
-generate_both "greeting2" "うまく話そうとしなくて大丈夫。あなたのペースで気持ちを聞かせてね。"
+generate_both "greeting2" "うまく話そうとしなくて大丈夫。落ち着いてゆっくり話してね。"
 
 # 質問 1-8
 generate_both "q1" "最近、誰かの役に立てたと感じたことってある？小さなことでも大丈夫だよ。"

@@ -9,7 +9,7 @@ export default function Character({ expression = "normal" }: CharacterProps) {
   const isHappy = expression === "happy";
 
   return (
-    <svg width="320" height="520" viewBox="0 0 320 520" className="drop-shadow-2xl">
+    <svg width="700" height="1140" viewBox="0 0 320 520" className="drop-shadow-2xl">
       {/* 口パクアニメーション定義 */}
       <defs>
         <style>{`
@@ -58,7 +58,7 @@ export default function Character({ expression = "normal" }: CharacterProps) {
       )}
 
       {/* 首 */}
-      <rect x="135" y="220" width="50" height="65" rx="10" fill="#F5C6A0" />
+      <rect x="135" y="230" width="50" height="50" rx="10" fill="#F5C6A0" />
 
       {/* 頭 */}
       <ellipse cx="160" cy="155" rx="76" ry="85" fill="#E8B892" />

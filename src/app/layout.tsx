@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`h-full ${noto.variable}`}>
-      <body className="h-full bg-black font-[var(--font-noto)]">{children}</body>
+    <html lang="ja" className={`h-full ${noto.className}`}>
+      <body className="h-full bg-black">{children}</body>
     </html>
   );
 }

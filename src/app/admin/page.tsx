@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import clsx from "clsx";
+import { Volume2 } from "lucide-react";
 
 type Record = {
   id: string;
@@ -29,11 +33,21 @@ const SAMPLE: Record = {
   report: "【価値観・特徴】\n思いやりがあり、人の役に立つことに喜びを感じるタイプ。\n\n【強み】\nコミュニケーション力が高く、チームワークを重視。\n\n【配属候補】\n訪問介護（日勤帯）\n\n【総合コメント】\n二次面接を推奨。理念への共感度が高く、定着が期待できる。",
 };
 
+/** レポート内容からステータスを判定 */
 function getStatus(report?: string): { label: string; color: string } {
   if (!report) return { label: "未判定", color: "text-slate-400 bg-slate-100" };
   if (report.includes("推奨")) return { label: "推奨", color: "text-green-700 bg-green-50" };
   if (report.includes("見送")) return { label: "見送り", color: "text-red-600 bg-red-50" };
   return { label: "判定済", color: "text-blue-600 bg-blue-50" };
+}
+
+/** 日時を「M/d HH:mm」形式にフォーマット */
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return {
+    date: format(d, "M/d（E）", { locale: ja }),
+    time: format(d, "HH:mm"),
+  };
 }
 
 export default function AdminPage() {
@@ -44,6 +58,11 @@ export default function AdminPage() {
     const withIds = stored.map((r, i) => ({ ...r, id: r.id || `rec-${i}-${Date.now()}` }));
     setRecords(withIds.length > 0 ? withIds.reverse() : [SAMPLE]);
   }, []);
+
+  const navigateTo = (rec: Record) => {
+    sessionStorage.setItem(`admin-rec-${rec.id}`, JSON.stringify(rec));
+    location.href = `/admin/${rec.id}`;
+  };
 
   return (
     <div className="min-h-dvh bg-white">
@@ -69,10 +88,11 @@ export default function AdminPage() {
         <tbody>
           {records.map((rec, i) => {
             const status = getStatus(rec.report);
+            const dt = formatDate(rec.date);
             return (
               <tr
                 key={i}
-                onClick={() => { sessionStorage.setItem(`admin-rec-${rec.id}`, JSON.stringify(rec)); location.href = `/admin/${rec.id}`; }}
+                onClick={() => navigateTo(rec)}
                 className="border-b border-slate-100 cursor-pointer active:bg-slate-50 hover:bg-slate-50"
               >
                 <td className="px-4 py-3">
@@ -80,14 +100,13 @@ export default function AdminPage() {
                 </td>
                 <td className="px-3 py-3 text-sm text-slate-500">{rec.contact}</td>
                 <td className="px-3 py-3 text-sm text-slate-500 whitespace-nowrap">
-                  {new Date(rec.date).toLocaleDateString("ja-JP")}<br />
-                  {new Date(rec.date).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+                  {dt.date}<br />{dt.time}
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-slate-300 inline-block"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                  <Volume2 size={18} className="text-slate-300 inline-block" />
                 </td>
                 <td className="px-3 py-3">
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${status.color}`}>{status.label}</span>
+                  <span className={clsx("text-[11px] font-bold px-2 py-0.5 rounded", status.color)}>{status.label}</span>
                 </td>
               </tr>
             );

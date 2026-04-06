@@ -13,7 +13,7 @@ function wrapText(text: string, len: number) {
 }
 
 export default function MessageBox({ text }: Props) {
-  const lines = wrapText(text, 17);
+  const lines = wrapText(text, 15);
   return (
     <div className="bg-[#1e293b]/90 backdrop-blur-md rounded-2xl overflow-hidden w-full min-w-0">
       <div className="px-6 py-6 h-[150px] overflow-y-auto overflow-x-hidden flex items-center">

@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import { Toaster, toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 type Record = {
   id: string;
@@ -38,8 +42,14 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
       setRec(updated);
       const stored = JSON.parse(localStorage.getItem("ai-mendan-history") || "[]") as Record[];
       const idx = stored.findIndex(s => s.date === rec.date);
-      if (idx >= 0) { stored[idx].report = data.report; localStorage.setItem("ai-mendan-history", JSON.stringify(stored)); }
-    } catch { /* ignore */ }
+      if (idx >= 0) {
+        stored[idx].report = data.report;
+        localStorage.setItem("ai-mendan-history", JSON.stringify(stored));
+      }
+      toast.success("レポートを生成しました");
+    } catch {
+      toast.error("レポート生成に失敗しました");
+    }
     setGenerating(false);
   };
 
@@ -51,26 +61,27 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
+  const dateStr = format(new Date(rec.date), "yyyy/M/d（E） HH:mm", { locale: ja });
+
   return (
     <div className="min-h-dvh bg-white">
-      {/* ヘッダー */}
+      <Toaster position="top-center" />
       <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-5 py-4">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-xl font-bold text-slate-800">{rec.nickname}</h1>
-            <p className="text-sm text-slate-400 mt-1">{rec.contact} / {new Date(rec.date).toLocaleDateString("ja-JP")}</p>
+            <p className="text-sm text-slate-400 mt-1">{rec.contact} / {dateStr}</p>
           </div>
           <a href="/admin" className="text-sm text-slate-400 shrink-0">一覧へ</a>
         </div>
       </header>
 
       <main className="px-5 py-6">
-        {/* AIレポート */}
         <section className="mb-8">
           <h2 className="text-lg font-bold text-slate-800 mb-4">AIレポート</h2>
           {rec.report ? (
-            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 rounded-xl px-5 py-4">
-              {rec.report}
+            <div className="prose prose-sm prose-slate max-w-none bg-slate-50 rounded-xl px-5 py-4">
+              <ReactMarkdown>{rec.report}</ReactMarkdown>
             </div>
           ) : (
             <button
@@ -85,7 +96,6 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
 
         <hr className="border-slate-100 mb-8" />
 
-        {/* 回答内容 */}
         <section>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-slate-800">回答内容</h2>

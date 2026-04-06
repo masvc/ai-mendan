@@ -36,26 +36,45 @@ export default function Interview() {
   const [contact, setContact] = useState("");
   const [inputMode, setInputMode] = useState<"voice" | "text">("voice");
   const [showUI, setShowUI] = useState(true);
-  const [voice, setVoice] = useState<"aoyama" | "kenzaki">("aoyama");
+  const [voice, setVoice] = useState<"aoyama" | "kenzaki" | "browser">("aoyama");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const showText = useCallback((text: string) => { setDisplayText(text); setShowUI(false); }, []);
 
-  const playAudio = useCallback((audioKey: string, onEnd?: () => void) => {
+  const playAudio = useCallback((audioKey: string, text: string, onEnd?: () => void) => {
+    // 既存の再生を停止
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
-    audioRef.current = audio;
-    audio.onplay = () => setIsSpeaking(true);
-    audio.onended = () => { setIsSpeaking(false); setShowUI(true); audioRef.current = null; onEnd?.(); };
-    audio.onerror = () => { setIsSpeaking(false); setShowUI(true); audioRef.current = null; onEnd?.(); };
-    audio.play().catch(() => { setIsSpeaking(false); setShowUI(true); onEnd?.(); });
+    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+
+    if (voice === "browser") {
+      // Web Speech API
+      if (typeof window === "undefined" || !window.speechSynthesis) { setIsSpeaking(false); setTimeout(() => { setShowUI(true); onEnd?.(); }, 300); return; }
+      const u = new SpeechSynthesisUtterance(text.replace(/\n/g, "。"));
+      u.lang = "ja-JP"; u.rate = 1.0; u.pitch = 0.85;
+      u.onstart = () => setIsSpeaking(true);
+      u.onend = () => { setIsSpeaking(false); setShowUI(true); onEnd?.(); };
+      u.onerror = () => { setIsSpeaking(false); setShowUI(true); onEnd?.(); };
+      window.speechSynthesis.speak(u);
+    } else {
+      // VOICEVOX wav
+      const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
+      audioRef.current = audio;
+      audio.onplay = () => setIsSpeaking(true);
+      audio.onended = () => { setIsSpeaking(false); setShowUI(true); audioRef.current = null; onEnd?.(); };
+      audio.onerror = () => { setIsSpeaking(false); setShowUI(true); audioRef.current = null; onEnd?.(); };
+      audio.play().catch(() => { setIsSpeaking(false); setShowUI(true); onEnd?.(); });
+    }
   }, [voice]);
 
-  const stopAudio = useCallback(() => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } setIsSpeaking(false); }, []);
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  }, []);
 
   const sayText = useCallback((text: string, audioKey: string, onEnd?: () => void) => {
-    showText(text); setIsSpeaking(true); playAudio(audioKey, onEnd);
+    showText(text); setIsSpeaking(true); playAudio(audioKey, text, onEnd);
   }, [showText, playAudio]);
 
   const startRecording = useCallback(() => {
@@ -99,13 +118,13 @@ export default function Interview() {
         <p className="text-slate-600 text-base font-medium mb-2">履歴書なし・スマホで10分</p>
         <p className="text-slate-400 text-xs mb-12">匿名OK / 音声で回答 / 8問</p>
         {/* 声の選択 */}
-        <div className="flex gap-2 mb-6">
-          <button onClick={() => setVoice("aoyama")} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${voice === "aoyama" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500"}`}>
-            青山龍星
-          </button>
-          <button onClick={() => setVoice("kenzaki")} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${voice === "kenzaki" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500"}`}>
-            剣崎雌雄
-          </button>
+        <p className="text-slate-400 text-[11px] mb-2">音声を選択</p>
+        <div className="flex gap-2 mb-6 w-full max-w-[300px]">
+          {([["aoyama", "青山龍星"], ["kenzaki", "剣崎雌雄"], ["browser", "ブラウザ"]] as const).map(([k, label]) => (
+            <button key={k} onClick={() => setVoice(k)} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${voice === k ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500"}`}>
+              {label}
+            </button>
+          ))}
         </div>
 
         <Btn onClick={startInterview} className="max-w-[280px]">はじめる</Btn>
@@ -242,7 +261,9 @@ export default function Interview() {
                 </div>
               </div>
               <Btn onClick={() => location.reload()} variant="ghost">もう一度体験する</Btn>
-              <p className="text-slate-400 text-[10px] text-center mt-4">音声: VOICEVOX:{voice === "aoyama" ? "青山龍星" : "剣崎雌雄"}</p>
+              <p className="text-slate-400 text-[10px] text-center mt-4">
+                {voice === "browser" ? "音声: Web Speech API" : `音声: VOICEVOX:${voice === "aoyama" ? "青山龍星" : "剣崎雌雄"}`}
+              </p>
             </div>
           )}
         </div>

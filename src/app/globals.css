@@ -12,105 +12,30 @@ html, body {
   overflow: hidden;
 }
 
-/* ===== テキストウィンドウ ===== */
-.vn-window {
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-}
-
-/* 上部ボーダーライン */
-.top-line {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(100, 116, 139, 0.4), transparent);
-}
-
-/* 右上情報パネル */
-.info-panel {
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
-}
-
-/* ===== ボタン ===== */
-.vn-btn {
-  border: none;
-  border-radius: 10px;
-  padding: 13px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.5px;
-}
-
-.vn-btn:active {
-  transform: scale(0.97);
-  opacity: 0.9;
-}
-
-.vn-btn-primary {
-  background: #1e3a5f;
-  color: #fff;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.vn-btn-accent {
-  background: #1e3a5f;
-  color: #fff;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
-}
-
-.vn-btn-ghost {
-  background: transparent;
-  color: rgba(148, 163, 184, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-.vn-btn-rec {
-  background: #dc2626;
-  color: #fff;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-}
-
-/* 入力フィールド */
 .vn-input {
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 10px;
-  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
   font-size: 15px;
   background: #fff;
   color: #1e293b;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
 }
 
 .vn-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: #94a3b8;
 }
-
-/* アニメーション */
-@keyframes gentle-pulse {
-  0%, 100% { box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3); }
-  50% { box-shadow: 0 2px 16px rgba(30, 58, 95, 0.5); }
-}
-.animate-gentle-pulse { animation: gentle-pulse 2.5s ease-in-out infinite; }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-up { animation: fade-up 0.3s ease-out both; }
+.animate-fade-up { animation: fade-up 0.25s ease-out both; }
 
 @keyframes rec-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
 }
 .animate-rec-pulse { animation: rec-pulse 1.5s ease infinite; }
 

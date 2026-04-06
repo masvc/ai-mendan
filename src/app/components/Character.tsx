@@ -6,75 +6,122 @@ type CharacterProps = {
 
 export default function Character({ expression = "normal" }: CharacterProps) {
   return (
-    <svg width="200" height="320" viewBox="0 0 200 320" className="drop-shadow-lg">
-      {/* 体 - 大きめ、がっしり */}
-      <rect x="45" y="155" width="110" height="120" rx="12" fill="#1565C0" />
-      {/* 襟元 / ユニフォーム風ライン */}
-      <rect x="45" y="155" width="110" height="20" rx="8" fill="#0D47A1" />
-      <line x1="100" y1="155" x2="100" y2="275" stroke="#0D47A1" strokeWidth="2" />
-      {/* 肩幅広め */}
-      <rect x="20" y="160" width="35" height="80" rx="16" fill="#1565C0" />
-      <rect x="145" y="160" width="35" height="80" rx="16" fill="#1565C0" />
-      {/* 手 */}
-      <circle cx="37" cy="248" r="14" fill="#D7A86E" />
-      <circle cx="163" cy="248" r="14" fill="#D7A86E" />
-      {/* 首 - 太め */}
-      <rect x="80" y="130" width="40" height="30" rx="6" fill="#D7A86E" />
-      {/* 顔 - 男性的でしっかりめ */}
-      <ellipse cx="100" cy="90" rx="48" ry="52" fill="#D7A86E" />
-      {/* 髪 - 短髪、スポーティ */}
-      <ellipse cx="100" cy="55" rx="50" ry="32" fill="#1A1A1A" />
-      <rect x="50" y="50" width="15" height="25" rx="7" fill="#1A1A1A" />
-      <rect x="135" y="50" width="15" height="25" rx="7" fill="#1A1A1A" />
-      {/* キャップ */}
-      <ellipse cx="100" cy="48" rx="54" ry="18" fill="#1565C0" />
-      <rect x="46" y="34" width="108" height="18" rx="6" fill="#1565C0" />
-      {/* キャップのツバ */}
-      <ellipse cx="100" cy="52" rx="58" ry="8" fill="#0D47A1" />
-      {/* キャップロゴ「絆」 */}
-      <text x="100" y="47" textAnchor="middle" fill="#FFD54F" fontSize="14" fontWeight="bold">
-        絆
-      </text>
+    <svg width="260" height="400" viewBox="0 0 260 400" className="drop-shadow-xl">
+      {/* === 体 - スクラブ（医療ユニフォーム）風 === */}
+      {/* 胴体 */}
+      <path d="M75,210 Q70,200 65,210 L55,340 Q55,355 130,355 Q205,355 205,340 L195,210 Q190,200 185,210 Z" fill="#4DB6AC" />
+      {/* Vネック */}
+      <path d="M105,205 L130,240 L155,205" fill="#00897B" />
+      {/* 胸ポケット */}
+      <rect x="155" y="245" width="28" height="22" rx="3" fill="#00897B" opacity="0.5" />
+      <rect x="159" y="248" width="8" height="2" rx="1" fill="#fff" opacity="0.6" />
+      {/* 名札 */}
+      <rect x="90" y="248" width="35" height="20" rx="3" fill="#fff" opacity="0.85" />
+      <text x="107" y="262" textAnchor="middle" fill="#00897B" fontSize="8" fontWeight="bold">翔平</text>
 
-      {/* 眉 - 太め、男性的 */}
-      <line x1="70" y1="72" x2="88" y2="74" stroke="#1A1A1A" strokeWidth="3" strokeLinecap="round" />
-      <line x1="112" y1="74" x2="130" y2="72" stroke="#1A1A1A" strokeWidth="3" strokeLinecap="round" />
+      {/* 肩・腕 */}
+      <ellipse cx="62" cy="220" rx="22" ry="30" fill="#4DB6AC" />
+      <ellipse cx="198" cy="220" rx="22" ry="30" fill="#4DB6AC" />
+      {/* 腕 */}
+      <rect x="35" y="225" width="30" height="85" rx="14" fill="#4DB6AC" />
+      <rect x="195" y="225" width="30" height="85" rx="14" fill="#4DB6AC" />
 
-      {/* 目 */}
+      {/* 手 - やや上げてる（歓迎ポーズ） */}
       {expression === "happy" ? (
         <>
-          <path d="M72,82 Q80,76 88,82" stroke="#1A1A1A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          <path d="M112,82 Q120,76 128,82" stroke="#1A1A1A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <circle cx="42" cy="305" r="16" fill="#F5C6A0" />
+          <g transform="translate(195, 280) rotate(-20)">
+            <circle cx="15" cy="0" r="16" fill="#F5C6A0" />
+          </g>
         </>
       ) : (
         <>
-          <ellipse cx="80" cy="82" rx="6" ry="7" fill="#1A1A1A" />
-          <ellipse cx="120" cy="82" rx="6" ry="7" fill="#1A1A1A" />
-          <circle cx="78" cy="80" r="2" fill="#fff" />
-          <circle cx="118" cy="80" r="2" fill="#fff" />
+          <circle cx="50" cy="315" r="16" fill="#F5C6A0" />
+          <circle cx="210" cy="315" r="16" fill="#F5C6A0" />
         </>
       )}
 
-      {/* 口 */}
+      {/* === 首 === */}
+      <rect x="110" y="185" width="40" height="30" rx="8" fill="#F5C6A0" />
+
+      {/* === 頭 === */}
+      {/* 顔の影 */}
+      <ellipse cx="130" cy="120" rx="62" ry="68" fill="#E8B892" />
+      {/* 顔 */}
+      <ellipse cx="130" cy="118" rx="60" ry="66" fill="#F5C6A0" />
+
+      {/* === 髪 - ナチュラル短髪 === */}
+      <ellipse cx="130" cy="72" rx="64" ry="40" fill="#2C2C2C" />
+      <ellipse cx="130" cy="65" rx="58" ry="32" fill="#3A3A3A" />
+      {/* サイドの髪 */}
+      <rect x="68" y="65" width="18" height="45" rx="9" fill="#2C2C2C" />
+      <rect x="174" y="65" width="18" height="45" rx="9" fill="#2C2C2C" />
+      {/* 前髪 - 自然な流れ */}
+      <path d="M80,80 Q95,60 110,78 Q120,55 140,75 Q155,58 165,78 Q175,62 185,82" fill="#2C2C2C" />
+      {/* ハイライト */}
+      <path d="M105,62 Q115,52 125,60" stroke="#555" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />
+
+      {/* === 耳 === */}
+      <ellipse cx="72" cy="120" rx="10" ry="14" fill="#F5C6A0" />
+      <ellipse cx="72" cy="120" rx="6" ry="9" fill="#E8B892" />
+      <ellipse cx="188" cy="120" rx="10" ry="14" fill="#F5C6A0" />
+      <ellipse cx="188" cy="120" rx="6" ry="9" fill="#E8B892" />
+
+      {/* === 眉 - しっかりめ === */}
+      <path d="M96,98 Q107,92 118,96" stroke="#2C2C2C" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <path d="M142,96 Q153,92 164,98" stroke="#2C2C2C" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+
+      {/* === 目 === */}
       {expression === "happy" ? (
         <>
-          <path d="M82,100 Q100,118 118,100" stroke="#1A1A1A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          <ellipse cx="68" cy="95" rx="10" ry="6" fill="rgba(255,138,128,0.35)" />
-          <ellipse cx="132" cy="95" rx="10" ry="6" fill="rgba(255,138,128,0.35)" />
+          {/* 閉じ目（嬉しい） */}
+          <path d="M96,112 Q107,104 118,112" stroke="#2C2C2C" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M142,112 Q153,104 164,112" stroke="#2C2C2C" strokeWidth="3" fill="none" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          {/* 白目 */}
+          <ellipse cx="107" cy="112" rx="12" ry="14" fill="#fff" />
+          <ellipse cx="153" cy="112" rx="12" ry="14" fill="#fff" />
+          {/* 瞳 */}
+          <ellipse cx="107" cy="113" rx="8" ry="10" fill="#3E2723" />
+          <ellipse cx="153" cy="113" rx="8" ry="10" fill="#3E2723" />
+          {/* 瞳の中心 */}
+          <ellipse cx="107" cy="114" rx="4" ry="5" fill="#1A1A1A" />
+          <ellipse cx="153" cy="114" rx="4" ry="5" fill="#1A1A1A" />
+          {/* ハイライト */}
+          <circle cx="103" cy="108" r="3" fill="#fff" />
+          <circle cx="149" cy="108" r="3" fill="#fff" />
+          <circle cx="110" cy="115" r="1.5" fill="#fff" opacity="0.7" />
+          <circle cx="156" cy="115" r="1.5" fill="#fff" opacity="0.7" />
+          {/* まつ毛（上） */}
+          <path d="M95,106 Q107,98 119,106" stroke="#2C2C2C" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M141,106 Q153,98 165,106" stroke="#2C2C2C" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        </>
+      )}
+
+      {/* === 鼻 === */}
+      <path d="M127,125 Q130,133 133,125" stroke="#D4A07A" strokeWidth="2" fill="none" strokeLinecap="round" />
+
+      {/* === 口 === */}
+      {expression === "happy" ? (
+        <>
+          <path d="M110,142 Q130,162 150,142" stroke="#2C2C2C" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M112,143 Q130,158 148,143" fill="#E57373" opacity="0.5" />
+          {/* 頬の赤み */}
+          <ellipse cx="88" cy="130" rx="14" ry="9" fill="#FF8A80" opacity="0.3" />
+          <ellipse cx="172" cy="130" rx="14" ry="9" fill="#FF8A80" opacity="0.3" />
         </>
       ) : expression === "smile" ? (
-        <path d="M84,98 Q100,110 116,98" stroke="#1A1A1A" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <>
+          <path d="M114,140 Q130,154 146,140" stroke="#2C2C2C" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          {/* 軽い頬の赤み */}
+          <ellipse cx="90" cy="130" rx="12" ry="7" fill="#FF8A80" opacity="0.2" />
+          <ellipse cx="170" cy="130" rx="12" ry="7" fill="#FF8A80" opacity="0.2" />
+        </>
       ) : (
-        <path d="M86,100 Q100,108 114,100" stroke="#1A1A1A" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <path d="M116,140 Q130,150 144,140" stroke="#2C2C2C" strokeWidth="2.5" fill="none" strokeLinecap="round" />
       )}
-
-      {/* 鼻 */}
-      <path d="M98,88 L100,94 L102,88" stroke="#C4956A" strokeWidth="1.5" fill="none" />
-
-      {/* 背番号風テキスト */}
-      <text x="100" y="215" textAnchor="middle" fill="#FFD54F" fontSize="36" fontWeight="bold" fontFamily="Arial">
-        17
-      </text>
     </svg>
   );
 }

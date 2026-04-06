@@ -307,28 +307,49 @@ export default function Interview() {
     const history = JSON.parse(localStorage.getItem("ai-mendan-history") || "[]") as { date: string; nickname: string; answers: { question: string; answer: string }[] }[];
     const latest = history[history.length - 1];
     return (
-      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col">
-        <div className="px-5 pt-6 pb-4 flex justify-between items-center">
-          <h2 className="text-slate-800 text-lg font-bold">提出済みの回答</h2>
-          <button onClick={() => store.setScreen("title")} className="text-sm text-slate-400 underline">戻る</button>
+      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-50 flex flex-col">
+        {/* ヘッダー */}
+        <div className="bg-white border-b border-slate-100 px-5 py-3 flex items-center justify-between shrink-0">
+          <button onClick={() => store.setScreen("title")} className="flex items-center gap-1 text-slate-400 active:text-slate-600 transition-colors">
+            <Home size={18} />
+            <span className="text-xs font-bold">トップ</span>
+          </button>
+          <p className="text-sm font-bold text-slate-800">提出済みの回答</p>
+          <div className="w-[60px]" />
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-3">
+
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {latest ? (
-            <>
-              <div className="bg-slate-50 rounded-xl px-5 py-3 flex justify-between items-center">
-                <p className="text-slate-700 text-sm font-bold">{latest.nickname}</p>
-                <p className="text-slate-400 text-xs">{new Date(latest.date).toLocaleDateString("ja-JP")}</p>
-              </div>
-              {latest.answers.map((a, i) => (
-                <div key={i} className="bg-slate-50 rounded-xl px-5 py-4">
-                  <p className="text-slate-400 text-sm font-bold mb-2">Q{i + 1}. {a.question}</p>
-                  <p className="text-slate-700 text-base leading-relaxed">{a.answer || "（未回答）"}</p>
+            <div className="px-5 py-6 space-y-5">
+              {/* 応募者情報 */}
+              <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex justify-between items-center">
+                <div>
+                  <p className="text-slate-800 text-lg font-bold">{latest.nickname}</p>
                 </div>
-              ))}
-              <p className="text-slate-300 text-xs text-center pt-2">※内容はスタッフが確認し、2日以内にご連絡します</p>
-            </>
+                <p className="text-slate-400 text-sm">{new Date(latest.date).toLocaleDateString("ja-JP")}</p>
+              </div>
+
+              {/* 回答一覧 */}
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100">
+                  <h3 className="text-base font-bold text-slate-800">回答内容</h3>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {latest.answers.map((a, i) => (
+                    <div key={i} className="px-6 py-5">
+                      <p className="text-[#4a9e8e] text-xs font-bold mb-2">Q{i + 1}. {a.question}</p>
+                      <p className="text-slate-800 text-base leading-relaxed">{a.answer || <span className="text-slate-300">（未回答）</span>}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-slate-300 text-sm text-center">※内容はスタッフが確認し、2日以内にご連絡します</p>
+            </div>
           ) : (
-            <p className="text-slate-400 text-center py-16">まだ提出記録がありません</p>
+            <div className="flex items-center justify-center h-full">
+              <p className="text-slate-400">まだ提出記録がありません</p>
+            </div>
           )}
         </div>
       </div>

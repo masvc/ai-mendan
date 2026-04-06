@@ -36,20 +36,27 @@ export default function Interview() {
   const [contact, setContact] = useState("");
   const [inputMode, setInputMode] = useState<"voice" | "text">("voice");
   const [showUI, setShowUI] = useState(true);
+  const [voice, setVoice] = useState<"aoyama" | "kenzaki">("aoyama");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const showText = useCallback((text: string) => { setDisplayText(text); setShowUI(false); }, []);
-  const speak = useCallback((text: string, onEnd?: () => void) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) { setIsSpeaking(false); setTimeout(() => { setShowUI(true); onEnd?.(); }, 300); return; }
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/\n/g, "。"));
-    u.lang = "ja-JP"; u.rate = 1.0; u.pitch = 0.85;
-    u.onstart = () => setIsSpeaking(true);
-    u.onend = () => { setIsSpeaking(false); setShowUI(true); onEnd?.(); };
-    u.onerror = () => { setIsSpeaking(false); setShowUI(true); onEnd?.(); };
-    window.speechSynthesis.speak(u);
-  }, []);
-  const sayText = useCallback((text: string, onEnd?: () => void) => { showText(text); setIsSpeaking(true); speak(text, onEnd); }, [showText, speak]);
+
+  const playAudio = useCallback((audioKey: string, onEnd?: () => void) => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
+    audioRef.current = audio;
+    audio.onplay = () => setIsSpeaking(true);
+    audio.onended = () => { setIsSpeaking(false); setShowUI(true); audioRef.current = null; onEnd?.(); };
+    audio.onerror = () => { setIsSpeaking(false); setShowUI(true); audioRef.current = null; onEnd?.(); };
+    audio.play().catch(() => { setIsSpeaking(false); setShowUI(true); onEnd?.(); });
+  }, [voice]);
+
+  const stopAudio = useCallback(() => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } setIsSpeaking(false); }, []);
+
+  const sayText = useCallback((text: string, audioKey: string, onEnd?: () => void) => {
+    showText(text); setIsSpeaking(true); playAudio(audioKey, onEnd);
+  }, [showText, playAudio]);
 
   const startRecording = useCallback(() => {
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
@@ -62,17 +69,17 @@ export default function Interview() {
   }, []);
   const stopRecording = useCallback(() => { recognitionRef.current?.stop(); setIsRecording(false); }, []);
 
-  const startInterview = () => { setScreen("greeting"); sayText(CONFIG.greeting); };
-  const startQuestions = () => { window.speechSynthesis?.cancel(); setIsSpeaking(false); setScreen("question"); setCurrentQ(0); goToQuestion(0); };
-  const goToQuestion = (idx: number) => { setTextInput(""); sayText(QUESTIONS[idx].q); };
+  const startInterview = () => { setScreen("greeting"); sayText(CONFIG.greeting, "greeting"); };
+  const startQuestions = () => { stopAudio(); setScreen("question"); setCurrentQ(0); goToQuestion(0); };
+  const goToQuestion = (idx: number) => { setTextInput(""); sayText(QUESTIONS[idx].q, `q${idx + 1}`); };
   const submitAnswer = () => {
     if (!textInput.trim()) return;
-    window.speechSynthesis?.cancel(); setIsSpeaking(false); stopRecording();
+    stopAudio(); stopRecording();
     setAnswers(prev => [...prev, textInput.trim()]); setScreen("reaction");
-    sayText(QUESTIONS[currentQ].reaction, () => { setTimeout(() => { if (currentQ + 1 < QUESTIONS.length) { const n = currentQ + 1; setCurrentQ(n); setScreen("question"); goToQuestion(n); } else { setScreen("confirm"); } }, 600); });
+    sayText(QUESTIONS[currentQ].reaction, `r${currentQ + 1}`, () => { setTimeout(() => { if (currentQ + 1 < QUESTIONS.length) { const n = currentQ + 1; setCurrentQ(n); setScreen("question"); goToQuestion(n); } else { setScreen("confirm"); } }, 600); });
   };
-  const goToContact = () => { window.speechSynthesis?.cancel(); setIsSpeaking(false); setScreen("contact"); sayText("ありがとう！最後に、連絡先を教えてもらえるかな？"); };
-  const submitContact = () => { if (!nickname.trim() || !contact.trim()) return; setScreen("complete"); sayText(CONFIG.completeMessage); };
+  const goToContact = () => { stopAudio(); setScreen("contact"); sayText("ありがとう！最後に、連絡先を教えてもらえるかな？", "contact"); };
+  const submitContact = () => { if (!nickname.trim() || !contact.trim()) return; setScreen("complete"); sayText(CONFIG.completeMessage, "complete"); };
 
   const expression: "normal" | "smile" | "happy" | "talking" = isSpeaking ? "talking" : (screen === "complete" || screen === "reaction") ? "happy" : screen === "greeting" ? "smile" : "normal";
   const progress = (screen === "complete" || screen === "contact" || screen === "confirm") ? 100 : (screen === "question" || screen === "reaction") ? ((currentQ + 1) / QUESTIONS.length) * 100 : 0;
@@ -91,6 +98,16 @@ export default function Interview() {
         <p className="text-slate-400 text-xs tracking-[0.2em] mt-2 mb-8">INTERVIEW</p>
         <p className="text-slate-600 text-base font-medium mb-2">履歴書なし・スマホで10分</p>
         <p className="text-slate-400 text-xs mb-12">匿名OK / 音声で回答 / 8問</p>
+        {/* 声の選択 */}
+        <div className="flex gap-2 mb-6">
+          <button onClick={() => setVoice("aoyama")} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${voice === "aoyama" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500"}`}>
+            青山龍星
+          </button>
+          <button onClick={() => setVoice("kenzaki")} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${voice === "kenzaki" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500"}`}>
+            剣崎雌雄
+          </button>
+        </div>
+
         <Btn onClick={startInterview} className="max-w-[280px]">はじめる</Btn>
         <p className="mt-8 text-slate-400 text-[11px]">AI面接官「翔平」が質問します</p>
       </div>

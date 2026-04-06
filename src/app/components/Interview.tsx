@@ -243,7 +243,7 @@ export default function Interview() {
       <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col justify-center px-8 gap-10">
         <Toaster position="top-center" />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-          <h1 className="text-5xl font-black text-slate-800 tracking-wide">AI面談</h1>
+          <h1 className="text-4xl font-black text-slate-800 tracking-wide">AI面談で<br />応募してみよう！</h1>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="text-center">
           <p className="text-slate-700 text-2xl font-bold">履歴書なし・スマホで10分</p>
@@ -307,9 +307,9 @@ export default function Interview() {
     const history = JSON.parse(localStorage.getItem("ai-mendan-history") || "[]") as { date: string; nickname: string; answers: { question: string; answer: string }[] }[];
     const latest = history[history.length - 1];
     return (
-      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-50 flex flex-col">
+      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-100 flex flex-col">
         {/* ヘッダー */}
-        <div className="bg-white border-b border-slate-100 px-5 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-white border-b border-slate-200 px-5 py-3 flex items-center justify-between shrink-0">
           <button onClick={() => store.setScreen("title")} className="flex items-center gap-1 text-slate-400 active:text-slate-600 transition-colors">
             <Home size={18} />
             <span className="text-xs font-bold">トップ</span>
@@ -320,31 +320,29 @@ export default function Interview() {
 
         <div className="flex-1 min-h-0 overflow-y-auto">
           {latest ? (
-            <div className="px-5 py-6 space-y-5">
+            <div className="px-4 py-5 space-y-4">
               {/* 応募者情報 */}
-              <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex justify-between items-center">
-                <div>
-                  <p className="text-slate-800 text-lg font-bold">{latest.nickname}</p>
-                </div>
+              <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4 flex justify-between items-center">
+                <p className="text-slate-800 text-lg font-bold">{latest.nickname}</p>
                 <p className="text-slate-400 text-sm">{new Date(latest.date).toLocaleDateString("ja-JP")}</p>
               </div>
 
               {/* 回答一覧 */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h3 className="text-base font-bold text-slate-800">回答内容</h3>
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-200 bg-slate-50">
+                  <h3 className="text-sm font-bold text-slate-500">回答内容</h3>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {latest.answers.map((a, i) => (
-                    <div key={i} className="px-6 py-5">
-                      <p className="text-[#4a9e8e] text-xs font-bold mb-2">Q{i + 1}. {a.question}</p>
-                      <p className="text-slate-800 text-base leading-relaxed">{a.answer || <span className="text-slate-300">（未回答）</span>}</p>
+                    <div key={i} className="px-5 py-4">
+                      <p className="text-[#4a9e8e] text-xs font-bold mb-1.5">Q{i + 1}. {a.question}</p>
+                      <p className="text-slate-800 text-[15px] leading-relaxed">{a.answer || <span className="text-slate-300">（未回答）</span>}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <p className="text-slate-300 text-sm text-center">※内容はスタッフが確認し、2日以内にご連絡します</p>
+              <p className="text-slate-300 text-xs text-center">※内容はスタッフが確認し、2日以内にご連絡します</p>
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">

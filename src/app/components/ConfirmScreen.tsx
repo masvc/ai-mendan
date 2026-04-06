@@ -39,7 +39,7 @@ export default function ConfirmScreen({
   };
 
   return (
-    <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-50 flex flex-col">
+    <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-100 flex flex-col">
       {/* ヘッダー */}
       <div className="bg-white border-b border-slate-100 px-5 py-3 flex items-center justify-between shrink-0">
         <button onClick={() => store.setScreen("title")} className="flex items-center gap-1 text-slate-400 active:text-slate-600 transition-colors">
@@ -61,7 +61,7 @@ export default function ConfirmScreen({
 
         <div className="px-5 pb-8 space-y-5">
           {/* 連絡先フォーム */}
-          <form id="contact-form" onSubmit={handleSubmit(doSubmit)} className="bg-white rounded-2xl px-6 py-7 space-y-7 shadow-sm">
+          <form id="contact-form" onSubmit={handleSubmit(doSubmit)} className="bg-white rounded-2xl px-6 py-7 space-y-7 border border-slate-200">
             <div>
               <label className="flex items-center gap-2 text-slate-700 text-base font-bold mb-3">
                 <User size={18} className="text-slate-400" />
@@ -91,7 +91,7 @@ export default function ConfirmScreen({
           </form>
 
           {/* 回答内容（インライン表示） */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800">回答内容</h3>
             </div>

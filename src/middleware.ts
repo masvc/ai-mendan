@@ -8,10 +8,7 @@ export function middleware(request: NextRequest) {
     if (scheme === "Basic" && encoded) {
       const decoded = atob(encoded);
       const [user, pass] = decoded.split(":");
-      if (
-        user === process.env.BASIC_AUTH_USER &&
-        pass === process.env.BASIC_AUTH_PASS
-      ) {
+      if (user === "peaky" && pass === "1234") {
         return NextResponse.next();
       }
     }

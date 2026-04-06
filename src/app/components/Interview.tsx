@@ -86,7 +86,7 @@ export default function Interview() {
   // ===== タイトル =====
   if (screen === "title") {
     return (
-      <div className="mx-auto h-dvh w-full max-w-[430px] bg-white flex flex-col items-center justify-center px-8">
+      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col items-center justify-center px-8">
         <h1 className="text-4xl font-black text-slate-800 tracking-wide">AI面談</h1>
         <p className="text-slate-400 text-xs tracking-[0.2em] mt-2 mb-8">INTERVIEW</p>
         <p className="text-slate-600 text-base font-medium mb-2">履歴書なし・スマホで10分</p>
@@ -100,7 +100,7 @@ export default function Interview() {
   // ===== 回答確認 =====
   if (screen === "confirm") {
     return (
-      <div className="mx-auto h-dvh w-full max-w-[430px] bg-white flex flex-col">
+      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col">
         <div className="px-5 pt-6 pb-4">
           <h2 className="text-slate-800 text-lg font-bold">あなたの回答</h2>
           <p className="text-slate-400 text-xs mt-1">内容を確認して、よければ提出してください</p>
@@ -124,7 +124,7 @@ export default function Interview() {
 
   // ===== メイン =====
   return (
-    <div className="mx-auto h-dvh w-full max-w-[430px] flex flex-col bg-white">
+    <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] flex flex-col bg-white">
       {/* キャラエリア */}
       <div className="relative flex-[55] min-h-0 overflow-hidden bg-slate-100">
         {/* プログレス */}

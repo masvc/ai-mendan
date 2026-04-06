@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`h-full ${noto.className}`}>
-      <body className="h-full bg-black">{children}</body>
+      <body className="h-full bg-slate-200 flex justify-center">{children}</body>
     </html>
   );
 }

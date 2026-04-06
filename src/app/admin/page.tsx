@@ -55,28 +55,43 @@ export default function AdminPage() {
         <p className="text-xs text-slate-400 mt-1">{records.length}件</p>
       </div>
 
-      <div>
-        {records.map((rec, i) => {
-          const status = getStatus(rec.report);
-          return (
-            <a
-              key={i}
-              href={`/admin/${rec.id}`}
-              onClick={() => sessionStorage.setItem(`admin-rec-${rec.id}`, JSON.stringify(rec))}
-              className="flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-slate-200 text-left">
+            <th className="px-4 py-3 text-xs font-bold text-slate-400">名前</th>
+            <th className="px-3 py-3 text-xs font-bold text-slate-400">日時</th>
+            <th className="px-3 py-3 text-xs font-bold text-slate-400">判定</th>
+            <th className="w-8"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {records.map((rec, i) => {
+            const status = getStatus(rec.report);
+            return (
+              <tr
+                key={i}
+                onClick={() => { sessionStorage.setItem(`admin-rec-${rec.id}`, JSON.stringify(rec)); location.href = `/admin/${rec.id}`; }}
+                className="border-b border-slate-100 cursor-pointer active:bg-slate-50 hover:bg-slate-50"
+              >
+                <td className="px-4 py-3">
                   <p className="text-slate-800 font-bold text-sm">{rec.nickname}</p>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${status.color}`}>{status.label}</span>
-                </div>
-                <p className="text-slate-400 text-xs mt-0.5">{new Date(rec.date).toLocaleDateString("ja-JP")} {new Date(rec.date).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</p>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-slate-300 shrink-0"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-            </a>
-          );
-        })}
-      </div>
+                  <p className="text-slate-400 text-[11px]">{rec.contact}</p>
+                </td>
+                <td className="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">
+                  {new Date(rec.date).toLocaleDateString("ja-JP")}<br />
+                  {new Date(rec.date).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+                </td>
+                <td className="px-3 py-3">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${status.color}`}>{status.label}</span>
+                </td>
+                <td className="pr-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-slate-300"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

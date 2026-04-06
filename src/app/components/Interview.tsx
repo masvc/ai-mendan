@@ -130,10 +130,72 @@ export default function Interview() {
   const progress = screen === "complete" || screen === "contact" ? 100
     : (screen === "question" || screen === "reaction") ? ((currentQ + 1) / QUESTIONS.length) * 100 : 0;
 
+  // タイトル画面は独立した全画面
+  if (screen === "title") {
+    return (
+      <div className="relative mx-auto h-dvh w-full max-w-[430px] overflow-hidden select-none flex flex-col items-center justify-center">
+        {/* 背景グラデーション */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#E8F5E9] via-[#C8E6C9] to-[#A5D6A7]" />
+        {/* 装飾光 */}
+        <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-60 h-60 bg-white/30 rounded-full blur-3xl" />
+
+        <div className="relative z-10 text-center px-8 animate-fade-up">
+          {/* ロゴ・タイトル */}
+          <div className="mb-8">
+            <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/30 shadow-lg">
+              <h1 className="text-5xl font-black text-[#1B5E20] tracking-wider leading-tight">
+                AI面談
+              </h1>
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <span className="h-px flex-1 bg-[#2E7D32]/30" />
+                <span className="text-[#2E7D32] text-xs font-bold tracking-[0.2em]">INTERVIEW</span>
+                <span className="h-px flex-1 bg-[#2E7D32]/30" />
+              </div>
+            </div>
+          </div>
+
+          {/* 説明テキスト */}
+          <div className="space-y-3 mb-10">
+            <p className="text-[#2E7D32] text-lg font-bold">履歴書なし・スマホで10分</p>
+            <div className="flex justify-center gap-4 text-[#2E7D32]/70 text-xs">
+              <span className="flex items-center gap-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.7"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                匿名OK
+              </span>
+              <span className="flex items-center gap-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.7"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                音声で回答
+              </span>
+              <span className="flex items-center gap-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.7"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                8問・約10分
+              </span>
+            </div>
+          </div>
+
+          {/* スタートボタン */}
+          <button
+            onClick={startInterview}
+            className="vn-btn vn-btn-accent w-full max-w-[280px] py-5 text-xl animate-gentle-pulse tracking-[0.15em] rounded-2xl"
+          >
+            はじめる
+          </button>
+
+          <p className="mt-6 text-[#2E7D32]/50 text-[10px]">
+            AI面接官「翔平」が8つの質問をします
+          </p>
+        </div>
+
+        {/* 下部の草装飾 */}
+        <div className="absolute bottom-0 left-0 right-0 h-[12%] bg-gradient-to-t from-[#81C784] to-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative mx-auto h-dvh w-full max-w-[430px] overflow-hidden select-none flex flex-col">
 
-      {/* ========== 上部60%: 背景 + キャラ + セリフ ========== */}
+      {/* ========== 上部60%: 背景 + キャラ ========== */}
       <div className="relative flex-[6] min-h-0 overflow-hidden">
         {/* 背景 */}
         <div className="absolute inset-0">
@@ -177,25 +239,15 @@ export default function Interview() {
         </div>
 
         {/* プログレスバー */}
-        {screen !== "title" && (
-          <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-20">
-            <div className="h-full bg-gradient-to-r from-[#66BB6A] to-[#FFB74D] transition-all duration-700 rounded-r-full" style={{ width: `${progress}%` }} />
-          </div>
-        )}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-20">
+          <div className="h-full bg-gradient-to-r from-[#66BB6A] to-[#FFB74D] transition-all duration-700 rounded-r-full" style={{ width: `${progress}%` }} />
+        </div>
 
         {/* 右上パネル */}
         {(screen === "question" || screen === "reaction") && (
           <div className="info-panel absolute top-2.5 right-2.5 z-20 px-3 py-1.5 text-center">
             <p className="text-[#81C784] text-[9px] font-bold tracking-wider">QUESTION</p>
             <p className="text-white text-xl font-black leading-none">{currentQ + 1}<span className="text-[#A5D6A7] text-xs font-normal">/{QUESTIONS.length}</span></p>
-          </div>
-        )}
-
-        {/* タイトルテキスト */}
-        {screen === "title" && (
-          <div className="absolute top-[8%] left-0 right-0 text-center z-10 animate-fade-up">
-            <h1 className="text-3xl font-black text-[#1B5E20] drop-shadow-[0_2px_8px_rgba(255,255,255,0.7)]">AI面談</h1>
-            <p className="mt-1.5 text-sm text-[#2E7D32] font-medium tracking-wider">履歴書なし・スマホで10分</p>
           </div>
         )}
 
@@ -218,21 +270,17 @@ export default function Interview() {
             </span>
           </div>
           <p className="text-[#E8F5E9] text-[14px] leading-[1.8] whitespace-pre-wrap min-h-[42px]">
-            {screen === "title" ? (
-              "「ちょっと話してみない？\n　履歴書いらないよ。スマホだけでOK。」"
-            ) : (
-              <>{"「"}{displayText}{isTyping ? <span className="animate-cursor text-[#81C784]">|</span> : "」"}</>
-            )}
+            {"「"}{displayText}{isTyping ? <span className="animate-cursor text-[#81C784]">|</span> : "」"}
           </p>
         </div>
 
         {/* ユーザー操作エリア */}
         <div className="flex-1 min-h-0 overflow-y-auto px-2 py-2 space-y-2">
 
-          {/* === タイトル === */}
-          {screen === "title" && (
-            <button onClick={startInterview} className="vn-btn vn-btn-accent w-full py-4 text-lg animate-gentle-pulse tracking-widest">
-              面接をはじめる
+          {/* === あいさつ === */}
+          {screen === "greeting" && showUI && (
+            <button onClick={startQuestions} className="vn-btn vn-btn-primary w-full py-3 animate-fade-up tracking-wider">
+              はじめる
             </button>
           )}
 

@@ -7,20 +7,20 @@ import AnswerBox from "./AnswerBox";
 import BottomBar from "./BottomBar";
 
 const CONFIG = {
-  greeting1: "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間です。",
-  greeting2: "正解はありません。あなたに合いそうな働き方を、一緒に考えられたらうれしいな。",
-  completeMessage: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通します。2日以内にご連絡しますので、少しだけお待ちください。",
+  greeting1: "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間だよ。",
+  greeting2: "うまく話そうとしなくて大丈夫。あなたのペースで気持ちを聞かせてね。",
+  completeMessage: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通すよ。2日以内に連絡するから、少しだけ待っててね。不安なことがあれば、いつでも気軽に聞いてね。",
 };
 
 const QUESTIONS = [
-  { q: "最近「誰かの役に立てた」と感じた出来事はある？なんでもいいよ、小さなことでも。", short: "役に立てた経験", reaction: "そうなんだ、素敵だね。ありがとう。" },
+  { q: "最近「誰かの役に立てた」と感じたことってある？小さなことでも大丈夫だよ。", short: "役に立てた経験", reaction: "そうなんだ、素敵だね。話してくれてありがとう。" },
   { q: "仕事で大切にしていることを3つ挙げるとしたら何かな？", short: "仕事で大切なこと", reaction: "なるほどね、いい考え方だと思うよ。" },
-  { q: "これまでの職場で「嬉しかったこと」と「しんどかったこと」を教えてくれる？", short: "嬉しい/しんどい経験", reaction: "話してくれてありがとう。気持ちわかるよ。" },
-  { q: "人と関わる仕事で、心がけていることってある？", short: "心がけていること", reaction: "うん、それは大事なことだよね。" },
-  { q: "ここで働くことに興味を持った理由を教えてくれる？", short: "興味を持った理由", reaction: "ありがとう。そう思ってくれて嬉しいよ。" },
-  { q: "チームで働くとき、意識していることは？", short: "チームワーク", reaction: "チームワーク大事にしてるんだね。" },
-  { q: "これまでの経験の中で「成長できた」と感じた瞬間ってある？", short: "成長の瞬間", reaction: "いい経験をしてきたんだね。" },
-  { q: "どんな働き方をしてみたい？希望や理想があれば聞かせて。", short: "希望の働き方", reaction: "ありがとう！全部聞けてよかった。" },
+  { q: "これまでの職場で嬉しかったことと、しんどかったこと、教えてくれる？", short: "嬉しい/しんどい経験", reaction: "話してくれてありがとう。無理しなくていいからね。" },
+  { q: "人と関わる仕事で、心がけていることってある？", short: "心がけていること", reaction: "うん、それすごく大事なことだよね。" },
+  { q: "安心の絆で働くことに興味を持ってくれた理由を教えてくれる？", short: "興味を持った理由", reaction: "ありがとう。そう思ってくれて嬉しいよ。" },
+  { q: "チームで働くとき、意識していることは？", short: "チームワーク", reaction: "チームワーク大事にしてるんだね。いいね。" },
+  { q: "これまでの経験の中で「成長できた」と感じた瞬間ってある？", short: "成長の瞬間", reaction: "いい経験をしてきたんだね。あなたのペースでいいからね。" },
+  { q: "安心の絆で、どんな働き方をしてみたい？希望があれば聞かせて。", short: "希望の働き方", reaction: "ありがとう！全部聞けてよかった。" },
 ];
 
 type Screen = "title" | "question" | "confirm" | "complete";
@@ -40,7 +40,7 @@ export default function Interview() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- 音声 ---
-  const playAudio = useCallback((audioKey: string, text: string, onEnd?: () => void) => {
+  const playAudio = useCallback((audioKey: string, _text: string, onEnd?: () => void) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
     audioRef.current = audio;

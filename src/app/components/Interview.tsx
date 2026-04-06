@@ -165,18 +165,20 @@ export default function Interview() {
   // ===== 回答確認画面（全画面スクロール） =====
   if (screen === "confirm") {
     return (
-      <div className="relative mx-auto h-dvh w-full max-w-[430px] overflow-hidden select-none flex flex-col bg-[#0A1F0E]">
+      <div className="relative mx-auto h-dvh w-full max-w-[430px] overflow-hidden select-none flex flex-col bg-gradient-to-b from-[#0A1F0E] to-[#0D2912]">
         {/* ヘッダー */}
-        <div className="shrink-0 px-5 pt-5 pb-3">
-          <h2 className="text-[#81C784] text-lg font-bold">あなたの回答</h2>
-          <p className="text-[#A5D6A7]/70 text-xs mt-1">内容を確認して、よければ提出してください</p>
+        <div className="shrink-0 px-5 pt-6 pb-4">
+          <div className="bg-white/10 rounded-2xl px-5 py-4">
+            <h2 className="text-[#81C784] text-lg font-bold">あなたの回答</h2>
+            <p className="text-[#A5D6A7]/70 text-xs mt-1">内容を確認して、よければ提出してください</p>
+          </div>
         </div>
 
         {/* 回答リスト（スクロール可能） */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4 space-y-3">
           {QUESTIONS.map((q, i) => (
-            <div key={i} className="bg-white/5 border border-[#4CAF50]/25 rounded-xl p-4">
-              <p className="text-[#81C784] text-xs font-bold mb-1.5">
+            <div key={i} className="bg-white/8 rounded-2xl p-4 border border-[#4CAF50]/15">
+              <p className="text-[#81C784] text-[11px] font-bold mb-2 tracking-wide">
                 Q{i + 1}. {q.short}
               </p>
               <p className="text-[#E8F5E9] text-sm leading-relaxed">
@@ -187,11 +189,11 @@ export default function Interview() {
         </div>
 
         {/* 提出ボタン */}
-        <div className="shrink-0 px-4 pb-6 pt-3 space-y-3 border-t border-[#4CAF50]/20">
-          <button onClick={goToContact} className="vn-btn vn-btn-accent w-full py-4 text-base tracking-wider animate-gentle-pulse">
+        <div className="shrink-0 px-5 pb-8 pt-4 space-y-3">
+          <button onClick={goToContact} className="vn-btn vn-btn-accent w-full py-4 text-base tracking-wider animate-gentle-pulse rounded-2xl">
             この内容で提出する
           </button>
-          <button onClick={() => location.reload()} className="vn-btn vn-btn-ghost w-full py-3">
+          <button onClick={() => location.reload()} className="vn-btn vn-btn-ghost w-full py-3.5 rounded-2xl">
             やり直す
           </button>
         </div>
@@ -267,74 +269,84 @@ export default function Interview() {
           </p>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-6 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-6">
+
+          {/* あいさつ後 */}
           {screen === "greeting" && showUI && (
-            <button onClick={startQuestions} className="vn-btn vn-btn-primary w-full py-4 text-base animate-fade-up tracking-wider">
-              質問をはじめる
-            </button>
+            <div className="bg-white/10 rounded-2xl p-4 animate-fade-up">
+              <button onClick={startQuestions} className="vn-btn vn-btn-primary w-full py-4 text-base tracking-wider rounded-xl">
+                質問をはじめる
+              </button>
+            </div>
           )}
 
+          {/* 質問（音声モード） */}
           {screen === "question" && showUI && inputMode === "voice" && (
-            <div className="space-y-3 animate-fade-up">
-              <div className="bg-white/95 rounded-xl px-4 py-3 text-[14px] text-gray-700 leading-relaxed border border-[#C8E6C9] min-h-[48px] shadow-sm">
+            <div className="bg-white/10 rounded-2xl p-4 space-y-3 animate-fade-up">
+              <p className="text-[#A5D6A7]/70 text-[11px] font-bold mb-1">あなたの回答</p>
+              <div className="bg-white/90 rounded-xl px-4 py-3 text-[14px] text-gray-700 leading-relaxed min-h-[48px]">
                 {textInput || <span className="text-gray-400">音声認識の結果がここに表示されます</span>}
                 {isRecording && <span className="animate-pulse text-red-400 ml-0.5">...</span>}
               </div>
               <div className="flex gap-3">
                 {!isRecording ? (
-                  <button onClick={startRecording} className="vn-btn vn-btn-rec py-3.5 px-5 flex items-center justify-center gap-2">
+                  <button onClick={startRecording} className="vn-btn vn-btn-rec py-3.5 px-5 flex items-center justify-center gap-2 rounded-xl">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                     {textInput ? "再録音" : "話す"}
                   </button>
                 ) : (
-                  <button onClick={stopRecording} className="vn-btn py-3.5 px-5 bg-[#333] text-white border-2 border-[#666] flex items-center justify-center gap-2 animate-rec-pulse">
+                  <button onClick={stopRecording} className="vn-btn py-3.5 px-5 bg-[#333] text-white border-2 border-[#666] flex items-center justify-center gap-2 animate-rec-pulse rounded-xl">
                     <span className="w-3 h-3 bg-red-400 rounded-sm" />
                     停止
                   </button>
                 )}
-                <button onClick={submitAnswer} disabled={!textInput.trim()} className="vn-btn vn-btn-primary flex-1 py-3.5 disabled:opacity-40">
+                <button onClick={submitAnswer} disabled={!textInput.trim()} className="vn-btn vn-btn-primary flex-1 py-3.5 disabled:opacity-40 rounded-xl">
                   次へ進む
                 </button>
               </div>
-              <button onClick={() => setInputMode("text")} className="w-full py-1 text-[11px] text-[#A5D6A7]/60 underline underline-offset-2">
+              <button onClick={() => setInputMode("text")} className="w-full py-1 text-[11px] text-[#A5D6A7]/50 underline underline-offset-2">
                 テキスト入力に切り替え
               </button>
             </div>
           )}
 
+          {/* 質問（テキストモード） */}
           {screen === "question" && showUI && inputMode === "text" && (
-            <div className="space-y-3 animate-fade-up">
-              <textarea value={textInput} onChange={e => setTextInput(e.target.value)} placeholder="ここに入力..." className="vn-input resize-none h-[76px]" />
+            <div className="bg-white/10 rounded-2xl p-4 space-y-3 animate-fade-up">
+              <p className="text-[#A5D6A7]/70 text-[11px] font-bold mb-1">あなたの回答</p>
+              <textarea value={textInput} onChange={e => setTextInput(e.target.value)} placeholder="ここに入力..." className="vn-input resize-none h-[76px] rounded-xl" />
               <div className="flex gap-3">
-                <button onClick={() => setInputMode("voice")} className="vn-btn vn-btn-ghost py-3.5 px-4">
+                <button onClick={() => setInputMode("voice")} className="vn-btn vn-btn-ghost py-3.5 px-4 rounded-xl">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
-                <button onClick={submitAnswer} disabled={!textInput.trim()} className="vn-btn vn-btn-primary flex-1 py-3.5 disabled:opacity-40">
+                <button onClick={submitAnswer} disabled={!textInput.trim()} className="vn-btn vn-btn-primary flex-1 py-3.5 disabled:opacity-40 rounded-xl">
                   次へ進む
                 </button>
               </div>
             </div>
           )}
 
+          {/* 連絡先 */}
           {screen === "contact" && showUI && (
-            <div className="space-y-3 animate-fade-up">
+            <div className="bg-white/10 rounded-2xl p-4 space-y-3 animate-fade-up">
               <div>
                 <label className="text-[#A5D6A7]/80 text-xs block mb-1 ml-1">ニックネーム</label>
-                <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="例：たろう" className="vn-input" />
+                <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="例：たろう" className="vn-input rounded-xl" />
               </div>
               <div>
                 <label className="text-[#A5D6A7]/80 text-xs block mb-1 ml-1">電話番号 または LINE ID</label>
-                <input type="text" value={contact} onChange={e => setContact(e.target.value)} placeholder="例：090-xxxx-xxxx" className="vn-input" />
+                <input type="text" value={contact} onChange={e => setContact(e.target.value)} placeholder="例：090-xxxx-xxxx" className="vn-input rounded-xl" />
               </div>
-              <button onClick={submitContact} disabled={!nickname.trim() || !contact.trim()} className="vn-btn vn-btn-primary w-full py-4 disabled:opacity-40">
+              <button onClick={submitContact} disabled={!nickname.trim() || !contact.trim()} className="vn-btn vn-btn-primary w-full py-4 disabled:opacity-40 rounded-xl">
                 送信する
               </button>
             </div>
           )}
 
+          {/* 完了 */}
           {screen === "complete" && showUI && (
             <div className="space-y-3 animate-fade-up">
-              <div className="bg-white/5 border border-[#4CAF50]/30 rounded-xl p-4 text-[#C8E6C9] text-xs leading-relaxed">
+              <div className="bg-white/10 rounded-2xl p-4 text-[#C8E6C9] text-xs leading-relaxed">
                 <p className="text-[#81C784] font-bold text-sm mb-2">AI要約レポート（デモ）</p>
                 <p><span className="text-[#A5D6A7]">応募者:</span> {nickname}　<span className="text-[#A5D6A7]">連絡先:</span> {contact}</p>
                 <div className="mt-2.5 pt-2.5 border-t border-[#4CAF50]/20 space-y-1.5">
@@ -343,7 +355,7 @@ export default function Interview() {
                   <p><span className="text-[#A5D6A7] font-bold">総合:</span> 理念と合致。長期定着の可能性あり。二次面接を推奨。</p>
                 </div>
               </div>
-              <button onClick={() => location.reload()} className="vn-btn vn-btn-ghost w-full py-3.5">
+              <button onClick={() => location.reload()} className="vn-btn vn-btn-ghost w-full py-3.5 rounded-xl">
                 もう一度体験する
               </button>
             </div>

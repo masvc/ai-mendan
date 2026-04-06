@@ -14,7 +14,7 @@ type Record = {
 const SAMPLE: Record = {
   id: "sample-001",
   date: "2026-04-06T10:30:00.000Z",
-  nickname: "たろう",
+  nickname: "たろう（サンプル）",
   contact: "090-1234-5678",
   answers: [
     { question: "役に立てた経験", answer: "近所のおばあちゃんの買い物を手伝った" },
@@ -53,15 +53,17 @@ export default function AdminPage() {
           <a href="/" className="text-xs text-slate-400">トップへ</a>
         </div>
         <p className="text-xs text-slate-400 mt-1">{records.length}件</p>
+        <p className="text-xs text-slate-300 mt-1">※デモ版: 本番では音声の再生・データのエクスポートに対応します</p>
       </div>
 
       <table className="w-full">
         <thead>
           <tr className="border-b border-slate-200 text-left">
-            <th className="px-4 py-3 text-xs font-bold text-slate-400">名前</th>
-            <th className="px-3 py-3 text-xs font-bold text-slate-400">日時</th>
-            <th className="px-3 py-3 text-xs font-bold text-slate-400">判定</th>
-            <th className="w-8"></th>
+            <th className="px-4 py-3 text-sm font-bold text-slate-400">名前</th>
+            <th className="px-3 py-3 text-sm font-bold text-slate-400">連絡先</th>
+            <th className="px-3 py-3 text-sm font-bold text-slate-400">日時</th>
+            <th className="px-3 py-3 text-sm font-bold text-slate-400">音声</th>
+            <th className="px-3 py-3 text-sm font-bold text-slate-400">判定</th>
           </tr>
         </thead>
         <tbody>
@@ -75,17 +77,17 @@ export default function AdminPage() {
               >
                 <td className="px-4 py-3">
                   <p className="text-slate-800 font-bold text-sm">{rec.nickname}</p>
-                  <p className="text-slate-400 text-[11px]">{rec.contact}</p>
                 </td>
-                <td className="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">
+                <td className="px-3 py-3 text-sm text-slate-500">{rec.contact}</td>
+                <td className="px-3 py-3 text-sm text-slate-500 whitespace-nowrap">
                   {new Date(rec.date).toLocaleDateString("ja-JP")}<br />
                   {new Date(rec.date).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
                 </td>
+                <td className="px-3 py-3 text-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-slate-300 inline-block"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                </td>
                 <td className="px-3 py-3">
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${status.color}`}>{status.label}</span>
-                </td>
-                <td className="pr-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-slate-300"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
                 </td>
               </tr>
             );

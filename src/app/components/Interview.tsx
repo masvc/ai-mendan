@@ -7,7 +7,7 @@ import AnswerBox from "./AnswerBox";
 import BottomBar from "./BottomBar";
 
 const CONFIG = {
-  greeting1: "こんにちは、AIの翔平です。今日はちょっとしたお話の時間です。",
+  greeting1: "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間です。",
   greeting2: "正解はありません。あなたに合いそうな働き方を、一緒に考えられたらうれしいな。",
   completeMessage: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通します。2日以内にご連絡しますので、少しだけお待ちください。",
 };
@@ -35,35 +35,23 @@ export default function Interview() {
   const [textInput, setTextInput] = useState("");
   const [nickname, setNickname] = useState("");
   const [contact, setContact] = useState("");
-  const [voice, setVoice] = useState<"aoyama" | "kenzaki" | "browser">("aoyama");
+  const [voice, setVoice] = useState<"aoyama" | "kenzaki">("aoyama");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- 音声 ---
   const playAudio = useCallback((audioKey: string, text: string, onEnd?: () => void) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
-    if (voice === "browser") {
-      if (typeof window === "undefined" || !window.speechSynthesis) { setIsSpeaking(false); onEnd?.(); return; }
-      const u = new SpeechSynthesisUtterance(text.replace(/\n/g, "。"));
-      u.lang = "ja-JP"; u.rate = 1.0; u.pitch = 0.85;
-      u.onstart = () => setIsSpeaking(true);
-      u.onend = () => { setIsSpeaking(false); onEnd?.(); };
-      u.onerror = () => { setIsSpeaking(false); onEnd?.(); };
-      window.speechSynthesis.speak(u);
-    } else {
-      const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
-      audioRef.current = audio;
-      audio.onplay = () => setIsSpeaking(true);
-      audio.onended = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
-      audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
-      audio.play().catch(() => { setIsSpeaking(false); onEnd?.(); });
-    }
+    const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
+    audioRef.current = audio;
+    audio.onplay = () => setIsSpeaking(true);
+    audio.onended = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
+    audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
+    audio.play().catch(() => { setIsSpeaking(false); onEnd?.(); });
   }, [voice]);
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     setIsSpeaking(false);
   }, []);
 
@@ -112,7 +100,11 @@ export default function Interview() {
         setDisplayText(QUESTIONS[next].q);
         playAudio(`q${next + 1}`, QUESTIONS[next].q);
       } else {
-        setScreen("confirm");
+        const confirmMsg = "全部の質問が終わったよ！回答内容を確認して、よければ提出してね。";
+        setDisplayText(confirmMsg);
+        playAudio("confirm", confirmMsg, () => {
+          setScreen("confirm");
+        });
       }
     });
   };
@@ -154,7 +146,7 @@ export default function Interview() {
         </div>
         <div className="flex flex-col items-center">
           <div className="flex gap-3 justify-center">
-            {([["aoyama", "音声A", "青山龍星"], ["kenzaki", "音声B", "剣崎雌雄"], ["browser", "音声C", "ロボット"]] as const).map(([k, label, sub]) => (
+            {([["aoyama", "音声A", "青山龍星"], ["kenzaki", "音声B", "剣崎雌雄"]] as const).map(([k, label, sub]) => (
               <button key={k} onClick={() => setVoice(k)} className={`w-[110px] h-[70px] rounded-2xl text-sm font-bold transition-all duration-150 active:translate-y-[1px] flex flex-col items-center justify-center gap-0.5 ${voice === k ? "bg-slate-800 text-white shadow-[0_2px_0_#0f172a]" : "bg-white text-slate-500 border-2 border-slate-200 shadow-[0_2px_0_#e2e8f0]"}`}>
                 <span>{label}</span>
                 <span className="text-xs opacity-70">{sub}</span>
@@ -255,7 +247,7 @@ export default function Interview() {
               <p><span className="font-bold text-slate-700">総合:</span> 二次面接を推奨。</p>
             </div>
             <p className="text-slate-400 text-base text-center mt-3">
-              {voice === "browser" ? "音声: Web Speech API" : `VOICEVOX:${voice === "aoyama" ? "青山龍星" : "剣崎雌雄"}`}
+              VOICEVOX:{voice === "aoyama" ? "青山龍星" : "剣崎雌雄"}
             </p>
           </div>
         )}

@@ -7,8 +7,8 @@ import AnswerBox from "./AnswerBox";
 import BottomBar from "./BottomBar";
 
 const CONFIG = {
-  characterName: "翔平",
-  greeting: "こんにちは、AIの翔平です。今日は応募というより、ちょっとしたお話の時間です。正解はありません。あなたに合いそうな働き方を、一緒に考えられたらうれしいな。",
+  greeting1: "こんにちは、AIの翔平です。今日はちょっとしたお話の時間です。",
+  greeting2: "正解はありません。あなたに合いそうな働き方を、一緒に考えられたらうれしいな。",
   completeMessage: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通します。2日以内にご連絡しますので、少しだけお待ちください。",
 };
 
@@ -35,7 +35,6 @@ export default function Interview() {
   const [textInput, setTextInput] = useState("");
   const [nickname, setNickname] = useState("");
   const [contact, setContact] = useState("");
-  const [inputMode, setInputMode] = useState<"voice" | "text">("voice");
   const [voice, setVoice] = useState<"aoyama" | "kenzaki" | "browser">("aoyama");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -69,27 +68,31 @@ export default function Interview() {
   }, []);
 
   // --- 録音 ---
+  const prevTextRef = useRef("");
   const startRecording = useCallback(() => {
     stopAudio();
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-    if (!API) { setInputMode("text"); return; }
+    if (!API) { return; }
+    prevTextRef.current = textInput ? textInput + " " : "";
     const r = new API(); r.lang = "ja-JP"; r.interimResults = true; r.continuous = true;
-    r.onresult = (e: SpeechRecognitionEvent) => { let t = ""; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; setTextInput(t); };
-    r.onerror = () => { setIsRecording(false); setInputMode("text"); };
+    r.onresult = (e: SpeechRecognitionEvent) => { let t = ""; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; setTextInput(prevTextRef.current + t); };
+    r.onerror = () => { setIsRecording(false); };
     r.onend = () => setIsRecording(false);
     recognitionRef.current = r; r.start(); setIsRecording(true);
-  }, [stopAudio]);
-  const stopRecording = useCallback(() => { recognitionRef.current?.stop(); setIsRecording(false); }, []);
+  }, [stopAudio, textInput]);
+  const stopRecording = useCallback(() => { const r = recognitionRef.current; if (r) { r.onresult = null; r.onend = null; r.onerror = null; r.stop(); recognitionRef.current = null; } setIsRecording(false); }, []);
 
   // --- フロー ---
   const startInterview = () => {
     setScreen("question");
     setCurrentQ(0);
-    setDisplayText(CONFIG.greeting);
-    playAudio("greeting", CONFIG.greeting, () => {
-      // あいさつ終了 → Q1を表示
-      setDisplayText(QUESTIONS[0].q);
-      playAudio("q1", QUESTIONS[0].q);
+    setDisplayText(CONFIG.greeting1);
+    playAudio("greeting1", CONFIG.greeting1, () => {
+      setDisplayText(CONFIG.greeting2);
+      playAudio("greeting2", CONFIG.greeting2, () => {
+        setDisplayText(QUESTIONS[0].q);
+        playAudio("q1", QUESTIONS[0].q);
+      });
     });
   };
 
@@ -98,6 +101,7 @@ export default function Interview() {
     stopAudio(); stopRecording();
     const newAnswers = [...answers, textInput.trim()];
     setAnswers(newAnswers);
+    setTextInput("");
 
     // リアクション → 次の質問 or 確認画面
     setDisplayText(QUESTIONS[currentQ].reaction);
@@ -105,7 +109,6 @@ export default function Interview() {
       if (currentQ + 1 < QUESTIONS.length) {
         const next = currentQ + 1;
         setCurrentQ(next);
-        setTextInput("");
         setDisplayText(QUESTIONS[next].q);
         playAudio(`q${next + 1}`, QUESTIONS[next].q);
       } else {
@@ -144,18 +147,17 @@ export default function Interview() {
       <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col justify-center px-8 gap-10">
         <div className="text-center">
           <h1 className="text-5xl font-black text-slate-800 tracking-wide">AI面談</h1>
-          <p className="text-slate-400 text-lg tracking-[0.2em] mt-2">INTERVIEW</p>
         </div>
         <div className="text-center">
           <p className="text-slate-700 text-2xl font-bold">履歴書なし・スマホで10分</p>
           <p className="text-slate-400 text-lg mt-2">匿名OK / 音声で回答 / 8問</p>
         </div>
         <div className="flex flex-col items-center">
-          <p className="text-slate-400 text-base mb-3">音声を選択</p>
           <div className="flex gap-3 justify-center">
-            {([["aoyama", "青山龍星"], ["kenzaki", "剣崎雌雄"], ["browser", "ブラウザ"]] as const).map(([k, label]) => (
-              <button key={k} onClick={() => setVoice(k)} className={`w-[110px] h-[110px] rounded-2xl text-base font-bold transition-all duration-150 active:translate-y-[1px] flex items-center justify-center ${voice === k ? "bg-slate-800 text-white shadow-[0_2px_0_#0f172a]" : "bg-white text-slate-500 border-2 border-slate-200 shadow-[0_2px_0_#e2e8f0]"}`}>
-                {label}
+            {([["aoyama", "音声A", "青山龍星"], ["kenzaki", "音声B", "剣崎雌雄"], ["browser", "音声C", "ロボット"]] as const).map(([k, label, sub]) => (
+              <button key={k} onClick={() => setVoice(k)} className={`w-[110px] h-[70px] rounded-2xl text-sm font-bold transition-all duration-150 active:translate-y-[1px] flex flex-col items-center justify-center gap-0.5 ${voice === k ? "bg-slate-800 text-white shadow-[0_2px_0_#0f172a]" : "bg-white text-slate-500 border-2 border-slate-200 shadow-[0_2px_0_#e2e8f0]"}`}>
+                <span>{label}</span>
+                <span className="text-xs opacity-70">{sub}</span>
               </button>
             ))}
           </div>
@@ -164,7 +166,6 @@ export default function Interview() {
           <button onClick={startInterview} className="w-[140px] h-[140px] flex items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all">
             はじめる
           </button>
-          <p className="mt-5 text-slate-400 text-base">AI面接官「翔平」が質問します</p>
         </div>
       </div>
     );
@@ -217,7 +218,7 @@ export default function Interview() {
   return (
     <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] relative bg-slate-100 overflow-hidden">
       {/* キャラクター（最背面） */}
-      <div className="absolute inset-0 flex items-end justify-center z-0">
+      <div className="absolute inset-0 flex items-center justify-center z-0">
         <Character expression={expression} />
       </div>
 
@@ -228,22 +229,19 @@ export default function Interview() {
 
       {/* Qカウンター */}
       {screen === "question" && (
-        <div className="absolute top-3 right-3 z-20 bg-white/80 backdrop-blur-sm rounded-md px-3 py-1 text-center">
-          <p className="text-slate-400 text-base font-bold">Q{currentQ + 1}<span className="text-slate-400 font-normal">/{QUESTIONS.length}</span></p>
+        <div className="absolute top-4 right-4 z-20">
+          <p className="text-slate-800 text-lg font-bold">残り{QUESTIONS.length - currentQ}問</p>
         </div>
       )}
 
       {/* 下部UI（キャラの上にモーダル風） */}
-      <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-col gap-4">
-        <MessageBox speaker={CONFIG.characterName} text={displayText} />
+      <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-col gap-4 min-w-0">
+        <MessageBox text={displayText} />
 
-        {screen === "question" && (
+        {screen === "question" && (isRecording || textInput) && (
           <AnswerBox
-            inputMode={inputMode}
             textInput={textInput}
             isRecording={isRecording}
-            onTextChange={setTextInput}
-            onSwitchMode={() => setInputMode(m => m === "voice" ? "text" : "voice")}
           />
         )}
 

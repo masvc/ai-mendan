@@ -1,47 +1,55 @@
 #!/bin/bash
-# VOICEVOX 青山龍星(speaker=13)で音声生成
-SPEAKER=13
-OUT_DIR="$(dirname "$0")/../public/audio"
+# VOICEVOX 音声生成（青山龍星: speaker=13, 剣崎雌雄: speaker=20）
 API="http://localhost:50021"
+BASE_DIR="$(dirname "$0")/../public/audio"
 
 generate() {
-  local name="$1"
-  local text="$2"
-  echo "Generating: $name"
-  # audio_query
-  curl -s -X POST "$API/audio_query?text=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$text'))")&speaker=$SPEAKER" -o /tmp/vv_query.json
-  # synthesis -> wav
-  curl -s -X POST "$API/synthesis?speaker=$SPEAKER" -H "Content-Type: application/json" -d @/tmp/vv_query.json -o "$OUT_DIR/$name.wav"
-  echo "  -> $OUT_DIR/$name.wav"
+  local speaker="$1"
+  local out_dir="$2"
+  local name="$3"
+  local text="$4"
+  mkdir -p "$out_dir"
+  echo "[$out_dir] $name: $text"
+  local encoded
+  encoded=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$text")
+  curl -s -X POST "$API/audio_query?text=$encoded&speaker=$speaker" -o /tmp/vv_query.json
+  curl -s -X POST "$API/synthesis?speaker=$speaker" -H "Content-Type: application/json" -d @/tmp/vv_query.json -o "$out_dir/$name.wav"
 }
 
-# あいさつ
-generate "greeting" "こんにちは、AIの翔平です。今日は応募というより、ちょっとしたお話の時間です。正解はありません。あなたに合いそうな働き方を、一緒に考えられたらうれしいな。"
+generate_both() {
+  local name="$1"
+  local text="$2"
+  generate 13 "$BASE_DIR/aoyama" "$name" "$text"
+  generate 20 "$BASE_DIR/kenzaki" "$name" "$text"
+}
+
+# あいさつ（2分割）
+generate_both "greeting1" "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間です。"
+generate_both "greeting2" "正解はありません。あなたに合いそうな働き方を、一緒に考えられたらうれしいな。"
 
 # 質問 1-8
-generate "q1" "最近、誰かの役に立てたと感じた出来事はある？なんでもいいよ、小さなことでも。"
-generate "q2" "仕事で大切にしていることを3つ挙げるとしたら何かな？"
-generate "q3" "これまでの職場で、嬉しかったことと、しんどかったことを教えてくれる？"
-generate "q4" "人と関わる仕事で、心がけていることってある？"
-generate "q5" "ここで働くことに興味を持った理由を教えてくれる？"
-generate "q6" "チームで働くとき、意識していることは？"
-generate "q7" "これまでの経験の中で、成長できたと感じた瞬間ってある？"
-generate "q8" "どんな働き方をしてみたい？希望や理想があれば聞かせて。"
+generate_both "q1" "最近、誰かの役に立てたと感じた出来事はある？なんでもいいよ、小さなことでも。"
+generate_both "q2" "仕事で大切にしていることを3つ挙げるとしたら何かな？"
+generate_both "q3" "これまでの職場で、嬉しかったことと、しんどかったことを教えてくれる？"
+generate_both "q4" "人と関わる仕事で、心がけていることってある？"
+generate_both "q5" "ここで働くことに興味を持った理由を教えてくれる？"
+generate_both "q6" "チームで働くとき、意識していることは？"
+generate_both "q7" "これまでの経験の中で、成長できたと感じた瞬間ってある？"
+generate_both "q8" "どんな働き方をしてみたい？希望や理想があれば聞かせて。"
 
 # リアクション 1-8
-generate "r1" "そうなんだ、素敵だね。ありがとう。"
-generate "r2" "なるほどね、いい考え方だと思うよ。"
-generate "r3" "話してくれてありがとう。気持ちわかるよ。"
-generate "r4" "うん、それは大事なことだよね。"
-generate "r5" "ありがとう。そう思ってくれて嬉しいよ。"
-generate "r6" "チームワーク大事にしてるんだね。"
-generate "r7" "いい経験をしてきたんだね。"
-generate "r8" "ありがとう！全部聞けてよかった。"
+generate_both "r1" "そうなんだ、素敵だね。ありがとう。"
+generate_both "r2" "なるほどね、いい考え方だと思うよ。"
+generate_both "r3" "話してくれてありがとう。気持ちわかるよ。"
+generate_both "r4" "うん、それは大事なことだよね。"
+generate_both "r5" "ありがとう。そう思ってくれて嬉しいよ。"
+generate_both "r6" "チームワーク大事にしてるんだね。"
+generate_both "r7" "いい経験をしてきたんだね。"
+generate_both "r8" "ありがとう！全部聞けてよかった。"
 
-# 確認・連絡先・完了
-generate "confirm" "全部の質問が終わったよ！回答内容を確認して、よければ提出してね。"
-generate "contact" "ありがとう！最後に、連絡先を教えてもらえるかな？"
-generate "complete" "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通します。2日以内にご連絡しますので、少しだけお待ちください。"
+# 確認・完了
+generate_both "confirm" "全部の質問が終わったよ！回答内容を確認して、よければ提出してね。"
+generate_both "complete" "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通します。2日以内にご連絡しますので、少しだけお待ちください。"
 
 echo ""
-echo "Done! Generated $(ls $OUT_DIR/*.wav | wc -l) files."
+echo "Done!"

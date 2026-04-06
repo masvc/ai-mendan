@@ -1,42 +1,26 @@
 "use client";
 
 type Props = {
-  inputMode: "voice" | "text";
   textInput: string;
   isRecording: boolean;
-  onTextChange: (text: string) => void;
-  onSwitchMode: () => void;
 };
 
-export default function AnswerBox({ inputMode, textInput, isRecording, onTextChange, onSwitchMode }: Props) {
+function wrapText(text: string, len: number) {
+  const lines: string[] = [];
+  for (let i = 0; i < text.length; i += len) {
+    lines.push(text.slice(i, i + len));
+  }
+  return lines;
+}
+
+export default function AnswerBox({ textInput, isRecording }: Props) {
   return (
-    <div className="bg-white/95 backdrop-blur-md rounded-2xl">
+    <div className="bg-white/95 backdrop-blur-md rounded-2xl overflow-hidden">
       <div className="px-6 py-6">
-        {inputMode === "voice" ? (
-          <>
-            <div className="bg-slate-50/80 rounded-xl px-5 py-4 text-base text-slate-700 leading-relaxed min-h-[80px]">
-              {textInput || <span className="text-slate-400">音声認識の結果がここに表示されます</span>}
-              {isRecording && <span className="animate-pulse text-red-500 ml-0.5">...</span>}
-            </div>
-            <div className="mt-4">
-              <button onClick={onSwitchMode} className="text-base text-slate-400 underline underline-offset-2">テキスト入力</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div>
-              <textarea
-                value={textInput}
-                onChange={e => onTextChange(e.target.value)}
-                placeholder="ここに入力..."
-                className="w-full border border-slate-200 rounded-xl p-4 text-base bg-white/80 text-slate-700 outline-none resize-none h-[80px]"
-              />
-            </div>
-            <div className="mt-4">
-              <button onClick={onSwitchMode} className="text-base text-slate-400 underline underline-offset-2">音声入力</button>
-            </div>
-          </>
-        )}
+        <div className="bg-slate-50/80 rounded-xl px-5 py-4 text-base text-slate-700 leading-relaxed h-[150px] overflow-y-auto break-words flex items-center justify-center text-center whitespace-pre-wrap">
+          {textInput ? wrapText(textInput, 16).join("\n") : <span className="text-slate-400">{isRecording ? "音声認識中..." : "話すボタンで音声入力"}</span>}
+          {isRecording && <span className="animate-pulse text-red-500 ml-0.5">...</span>}
+        </div>
       </div>
     </div>
   );

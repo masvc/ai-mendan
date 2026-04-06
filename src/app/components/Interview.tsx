@@ -22,7 +22,7 @@ const QUESTIONS = [
   { q: "どんな働き方をしてみたい？\n希望や理想があれば聞かせて。", short: "希望の働き方", reaction: "ありがとう！全部聞けてよかった。" },
 ];
 
-type Screen = "title" | "greeting" | "question" | "reaction" | "confirm" | "contact" | "complete";
+type Screen = "title" | "greeting" | "question" | "reaction" | "confirm" | "complete";
 
 export default function Interview() {
   const [screen, setScreen] = useState<Screen>("title");
@@ -97,11 +97,10 @@ export default function Interview() {
     setAnswers(prev => [...prev, textInput.trim()]); setScreen("reaction");
     sayText(QUESTIONS[currentQ].reaction, `r${currentQ + 1}`, () => { setTimeout(() => { if (currentQ + 1 < QUESTIONS.length) { const n = currentQ + 1; setCurrentQ(n); setScreen("question"); goToQuestion(n); } else { setScreen("confirm"); } }, 600); });
   };
-  const goToContact = () => { stopAudio(); setScreen("contact"); sayText("ありがとう！最後に、連絡先を教えてもらえるかな？", "contact"); };
   const submitContact = () => { if (!nickname.trim() || !contact.trim()) return; setScreen("complete"); sayText(CONFIG.completeMessage, "complete"); };
 
   const expression: "normal" | "smile" | "happy" | "talking" = isSpeaking ? "talking" : (screen === "complete" || screen === "reaction") ? "happy" : screen === "greeting" ? "smile" : "normal";
-  const progress = (screen === "complete" || screen === "contact" || screen === "confirm") ? 100 : (screen === "question" || screen === "reaction") ? ((currentQ + 1) / QUESTIONS.length) * 100 : 0;
+  const progress = (screen === "complete" || screen === "confirm") ? 100 : (screen === "question" || screen === "reaction") ? ((currentQ + 1) / QUESTIONS.length) * 100 : 0;
 
   const Btn = ({ onClick, children, disabled, variant = "primary", className = "" }: { onClick: () => void; children: React.ReactNode; disabled?: boolean; variant?: "primary" | "ghost" | "danger"; className?: string }) => {
     const base = "w-full py-3.5 rounded-lg font-semibold text-[15px] transition-colors active:opacity-80 disabled:opacity-40";
@@ -133,25 +132,40 @@ export default function Interview() {
     );
   }
 
-  // ===== 回答確認 =====
+  // ===== 回答確認 + 連絡先入力 =====
   if (screen === "confirm") {
     return (
       <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col">
         <div className="px-5 pt-6 pb-4">
-          <h2 className="text-slate-800 text-lg font-bold">あなたの回答</h2>
-          <p className="text-slate-400 text-xs mt-1">内容を確認して、よければ提出してください</p>
+          <h2 className="text-slate-800 text-lg font-bold">回答の確認・提出</h2>
+          <p className="text-slate-400 text-xs mt-1">内容を確認し、連絡先を入力して提出してください</p>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4 space-y-4">
-          {QUESTIONS.map((q, i) => (
-            <div key={i}>
-              <p className="text-slate-400 text-[11px] font-bold mb-1">Q{i + 1}. {q.short}</p>
-              <p className="text-slate-700 text-sm leading-relaxed">{answers[i] || "（未回答）"}</p>
-              {i < QUESTIONS.length - 1 && <div className="border-b border-slate-100 mt-4" />}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4">
+          {/* 回答一覧 */}
+          <div className="space-y-4 mb-6">
+            {QUESTIONS.map((q, i) => (
+              <div key={i}>
+                <p className="text-slate-400 text-[11px] font-bold mb-1">Q{i + 1}. {q.short}</p>
+                <p className="text-slate-700 text-sm leading-relaxed">{answers[i] || "（未回答）"}</p>
+                {i < QUESTIONS.length - 1 && <div className="border-b border-slate-100 mt-4" />}
+              </div>
+            ))}
+          </div>
+          {/* 連絡先入力 */}
+          <div className="border-t border-slate-200 pt-5 space-y-3">
+            <p className="text-slate-800 text-sm font-bold">連絡先</p>
+            <div>
+              <label className="text-slate-500 text-xs block mb-1">ニックネーム</label>
+              <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="例：たろう" className="vn-input" />
             </div>
-          ))}
+            <div>
+              <label className="text-slate-500 text-xs block mb-1">電話番号 または LINE ID</label>
+              <input type="text" value={contact} onChange={e => setContact(e.target.value)} placeholder="例：090-xxxx-xxxx" className="vn-input" />
+            </div>
+          </div>
         </div>
         <div className="px-5 pb-8 pt-4 space-y-3 border-t border-slate-100">
-          <Btn onClick={goToContact}>この内容で提出する</Btn>
+          <Btn onClick={submitContact} disabled={!nickname.trim() || !contact.trim()}>この内容で提出する</Btn>
           <Btn onClick={() => location.reload()} variant="ghost">やり直す</Btn>
         </div>
       </div>
@@ -232,20 +246,6 @@ export default function Interview() {
                 </button>
                 <Btn onClick={submitAnswer} disabled={!textInput.trim()}>次へ進む</Btn>
               </div>
-            </div>
-          )}
-
-          {screen === "contact" && showUI && (
-            <div className="space-y-4 animate-fade-up">
-              <div>
-                <label className="text-slate-500 text-xs block mb-1">ニックネーム</label>
-                <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="例：たろう" className="vn-input" />
-              </div>
-              <div>
-                <label className="text-slate-500 text-xs block mb-1">電話番号 または LINE ID</label>
-                <input type="text" value={contact} onChange={e => setContact(e.target.value)} placeholder="例：090-xxxx-xxxx" className="vn-input" />
-              </div>
-              <Btn onClick={submitContact} disabled={!nickname.trim() || !contact.trim()}>送信する</Btn>
             </div>
           )}
 

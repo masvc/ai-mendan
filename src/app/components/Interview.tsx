@@ -261,21 +261,16 @@ export default function Interview() {
           </div>
         </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45 }} className="flex flex-col items-center gap-4">
-          {hasProgress ? (
-            <>
-              <button onClick={resumeInterview} className="w-[140px] h-[140px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all gap-1">
-                <Play size={28} />
-                <span>続きから</span>
-              </button>
-              <button onClick={() => { store.reset(); toast("リセットしました"); }} className="text-sm text-slate-400 underline underline-offset-2">
-                最初からやり直す
-              </button>
-            </>
-          ) : (
-            <button onClick={startInterview} className="w-[140px] h-[140px] flex items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all">
-              はじめる
+          <div className="flex gap-4">
+            <button onClick={() => { store.reset(); startInterview(); }} className="w-[130px] h-[130px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all gap-1">
+              <RotateCcw size={24} />
+              <span>初めから</span>
             </button>
-          )}
+            <button onClick={resumeInterview} disabled={!hasProgress} className={clsx("w-[130px] h-[130px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg transition-all gap-1 active:translate-y-[1px]", hasProgress ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-slate-200 text-slate-400 cursor-not-allowed")}>
+              <Play size={28} />
+              <span>続きから</span>
+            </button>
+          </div>
           {hasHistory && (
             <button onClick={() => store.setScreen("myrecord")} className="text-sm text-slate-400 underline underline-offset-2">
               提出済みの回答を見る

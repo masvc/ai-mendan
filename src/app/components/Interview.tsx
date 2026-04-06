@@ -42,7 +42,7 @@ export default function Interview() {
   // --- 音声 ---
   const playAudio = useCallback((audioKey: string, _text: string, onEnd?: () => void) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    const audio = new Audio(`/audio/${voice}/${audioKey}.wav`);
+    const audio = new Audio(`/audio/${voice}/${audioKey}.wav?v=2`);
     audioRef.current = audio;
     audio.onplay = () => setIsSpeaking(true);
     audio.onended = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };

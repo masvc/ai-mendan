@@ -25,21 +25,21 @@ export default function Character({ expression = "normal" }: CharacterProps) {
       </defs>
 
       {/* === 体 - 医療スクラブ === */}
-      <path d="M90,280 Q80,268 72,280 L50,460 Q50,490 160,490 Q270,490 270,460 L248,280 Q240,268 230,280 Z" fill="#4DB6AC" />
-      <path d="M130,272 L160,318 L190,272" fill="#00897B" />
-      <rect x="190" y="330" width="35" height="28" rx="4" fill="#00897B" opacity="0.5" />
+      <path d="M90,280 Q80,268 72,280 L50,460 Q50,490 160,490 Q270,490 270,460 L248,280 Q240,268 230,280 Z" fill="#2d3a4f" />
+      <path d="M130,272 L160,318 L190,272" fill="#1e293b" />
+      <rect x="190" y="330" width="35" height="28" rx="4" fill="#1e293b" opacity="0.5" />
       <rect x="195" y="335" width="12" height="2" rx="1" fill="#fff" opacity="0.5" />
       <g>
         <rect x="108" y="332" width="44" height="26" rx="4" fill="#fff" opacity="0.9" />
-        <rect x="108" y="332" width="44" height="7" rx="4" fill="#4DB6AC" opacity="0.7" />
-        <text x="130" y="353" textAnchor="middle" fill="#00897B" fontSize="10" fontWeight="bold">翔平</text>
+        <rect x="108" y="332" width="44" height="7" rx="4" fill="#2d3a4f" opacity="0.7" />
+        <text x="130" y="353" textAnchor="middle" fill="#1e293b" fontSize="10" fontWeight="bold">翔平</text>
       </g>
 
       {/* 肩 */}
-      <ellipse cx="75" cy="290" rx="28" ry="35" fill="#4DB6AC" />
-      <ellipse cx="245" cy="290" rx="28" ry="35" fill="#4DB6AC" />
-      <rect x="40" y="298" width="38" height="110" rx="18" fill="#4DB6AC" />
-      <rect x="242" y="298" width="38" height="110" rx="18" fill="#4DB6AC" />
+      <ellipse cx="75" cy="290" rx="28" ry="35" fill="#2d3a4f" />
+      <ellipse cx="245" cy="290" rx="28" ry="35" fill="#2d3a4f" />
+      <rect x="40" y="298" width="38" height="110" rx="18" fill="#2d3a4f" />
+      <rect x="242" y="298" width="38" height="110" rx="18" fill="#2d3a4f" />
 
       {/* 手 */}
       {isHappy ? (

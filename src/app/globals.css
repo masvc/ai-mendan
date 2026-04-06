@@ -12,121 +12,105 @@ html, body {
   overflow: hidden;
 }
 
-@theme inline {
-  --color-kizuna-green: #2E7D32;
-  --color-kizuna-light: #81C784;
-  --color-kizuna-dark: #1B5E20;
-}
-
-/* ===== ビジュアルノベル テキストウィンドウ ===== */
+/* ===== テキストウィンドウ ===== */
 .vn-window {
-  position: relative;
-  background: linear-gradient(180deg, rgba(8, 48, 20, 0.92) 0%, rgba(5, 32, 14, 0.96) 100%);
-  border: 3px solid #4CAF50;
-  border-radius: 6px;
-  box-shadow:
-    inset 0 0 0 2px rgba(129, 199, 132, 0.2),
-    0 -2px 20px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(46, 125, 50, 0.1);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
 }
 
-/* チェッカーパターン装飾 */
-.checker-deco {
-  background-image:
-    linear-gradient(45deg, rgba(129, 199, 132, 0.15) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(129, 199, 132, 0.15) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(129, 199, 132, 0.15) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(129, 199, 132, 0.15) 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+/* 上部ボーダーライン */
+.top-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(100, 116, 139, 0.4), transparent);
 }
 
-/* 右上情報パネル（ときメモ風） */
+/* 右上情報パネル */
 .info-panel {
-  background: linear-gradient(180deg, rgba(8, 48, 20, 0.9) 0%, rgba(5, 32, 14, 0.95) 100%);
-  border: 2px solid #4CAF50;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(129, 199, 132, 0.15);
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
 }
 
 /* ===== ボタン ===== */
 .vn-btn {
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 13px 16px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .vn-btn:active {
   transform: scale(0.97);
+  opacity: 0.9;
 }
 
 .vn-btn-primary {
-  background: linear-gradient(180deg, #43A047 0%, #2E7D32 100%);
+  background: #1e3a5f;
   color: #fff;
-  border: 2px solid #66BB6A;
-  box-shadow: 0 3px 10px rgba(46, 125, 50, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .vn-btn-accent {
-  background: linear-gradient(180deg, #FF8F00 0%, #F57C00 100%);
+  background: #1e3a5f;
   color: #fff;
-  border: 2px solid #FFB74D;
-  box-shadow: 0 3px 12px rgba(245, 124, 0, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
 }
 
 .vn-btn-ghost {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(200, 230, 201, 0.9);
-  border: 2px solid rgba(129, 199, 132, 0.4);
+  background: transparent;
+  color: rgba(148, 163, 184, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
 .vn-btn-rec {
-  background: linear-gradient(180deg, #EF5350 0%, #D32F2F 100%);
+  background: #dc2626;
   color: #fff;
-  border: 2px solid #EF9A9A;
-  box-shadow: 0 3px 10px rgba(211, 47, 47, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 /* 入力フィールド */
 .vn-input {
-  border: 2px solid rgba(129, 199, 132, 0.5);
-  border-radius: 8px;
-  padding: 10px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  padding: 11px 14px;
   font-size: 15px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #333;
+  background: #fff;
+  color: #1e293b;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
 }
 
 .vn-input:focus {
-  border-color: #66BB6A;
-  box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.25);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* アニメーション */
 @keyframes gentle-pulse {
-  0%, 100% { box-shadow: 0 3px 12px rgba(245, 124, 0, 0.4); }
-  50% { box-shadow: 0 3px 24px rgba(245, 124, 0, 0.6); }
+  0%, 100% { box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3); }
+  50% { box-shadow: 0 2px 16px rgba(30, 58, 95, 0.5); }
 }
 .animate-gentle-pulse { animation: gentle-pulse 2.5s ease-in-out infinite; }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-up { animation: fade-up 0.35s ease-out both; }
+.animate-fade-up { animation: fade-up 0.3s ease-out both; }
 
 @keyframes rec-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.5); }
-  50% { box-shadow: 0 0 0 8px rgba(239, 83, 80, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
 }
 .animate-rec-pulse { animation: rec-pulse 1.5s ease infinite; }
 

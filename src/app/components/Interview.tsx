@@ -402,9 +402,9 @@ export default function Interview() {
         {screen === "question" && (
           <div className="flex items-center gap-2">
             {isListening && (
-              <span className="flex items-center gap-1.5 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full">
+              <span className="flex items-center gap-1 text-red-500 text-sm font-bold">
                 <Mic size={16} className="animate-pulse" />
-                <span>話してください</span>
+                <span>録音中</span>
               </span>
             )}
             <p className="text-slate-800 text-lg font-bold">残り{QUESTIONS.length - currentQ}問</p>

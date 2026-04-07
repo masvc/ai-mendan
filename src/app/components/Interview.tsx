@@ -279,7 +279,10 @@ export default function Interview() {
     setDisplayText(CONFIG.complete1);
     playAudio("complete1", CONFIG.complete1, () => {
       setDisplayText(CONFIG.complete2);
-      playAudio("complete2", CONFIG.complete2);
+      playAudio("complete2", CONFIG.complete2, () => {
+        // 音声終了後5秒でトップに自動遷移
+        setTimeout(() => { store.reset(); location.reload(); }, 5000);
+      });
     });
 
     let reportText = "";
@@ -457,11 +460,8 @@ export default function Interview() {
             </button>
           </div>
         ) : screen === "complete" ? (
-          <div className="flex justify-center">
-            <button onClick={() => { store.reset(); location.reload(); }} className="w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold border-2 border-slate-200 text-slate-500 shadow-[0_2px_0_#e2e8f0] active:translate-y-[1px] active:shadow-none transition-all">
-              <RotateCcw size={20} />
-              <span className="mt-1">再開</span>
-            </button>
+          <div className="text-center">
+            <p className="text-slate-500 text-sm font-bold">体験していただきありがとうございました</p>
           </div>
         ) : null}
       </div>

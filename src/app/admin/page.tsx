@@ -30,15 +30,20 @@ const SAMPLE: Record = {
     { question: "成長の瞬間", answer: "初めて一人で訪問できた時" },
     { question: "希望の働き方", answer: "日勤メインで利用者とじっくり向き合いたい" },
   ],
-  report: "【価値観・特徴】\n思いやりがあり、人の役に立つことに喜びを感じるタイプ。\n\n【強み】\nコミュニケーション力が高く、チームワークを重視。\n\n【配属候補】\n訪問介護（日勤帯）\n\n【総合コメント】\n二次面接を推奨。理念への共感度が高く、定着が期待できる。",
+  report: "【価値観・特徴】\n思いやりがあり、人の役に立つことに喜びを感じるタイプ。\n\n【強み】\nコミュニケーション力が高く、チームワークを重視。\n\n【配属候補】\n訪問介護（日勤帯）\n\n【総合コメント】\n二次面接を推奨。理念への共感度が高く、定着が期待できる。\n\n【AIスコア】\n4",
 };
 
-/** レポート内容からステータスを判定 */
-function getStatus(report?: string): { label: string; color: string } {
-  if (!report) return { label: "未判定", color: "text-slate-400 bg-slate-100" };
-  if (report.includes("推奨")) return { label: "推奨", color: "text-green-700 bg-green-50" };
-  if (report.includes("見送")) return { label: "見送り", color: "text-red-600 bg-red-50" };
-  return { label: "判定済", color: "text-blue-600 bg-blue-50" };
+/** レポートからAIスコア（1〜5）を抽出 */
+function getScore(report?: string): { label: string; color: string } {
+  if (!report) return { label: "-", color: "text-slate-400 bg-slate-100" };
+  const match = report.match(/【AIスコア】\s*(\d)/);
+  if (match) {
+    const score = parseInt(match[1]);
+    if (score >= 4) return { label: `${score}/5`, color: "text-green-700 bg-green-50" };
+    if (score >= 3) return { label: `${score}/5`, color: "text-blue-600 bg-blue-50" };
+    return { label: `${score}/5`, color: "text-orange-600 bg-orange-50" };
+  }
+  return { label: "?", color: "text-slate-400 bg-slate-100" };
 }
 
 /** 日時を「M/d HH:mm」形式にフォーマット */
@@ -82,12 +87,12 @@ export default function AdminPage() {
             <th className="px-3 py-3 text-sm font-bold text-slate-400">連絡先</th>
             <th className="px-3 py-3 text-sm font-bold text-slate-400">日時</th>
             <th className="px-3 py-3 text-sm font-bold text-slate-400">音声</th>
-            <th className="px-3 py-3 text-sm font-bold text-slate-400">判定</th>
+            <th className="px-3 py-3 text-sm font-bold text-slate-400">AI評価</th>
           </tr>
         </thead>
         <tbody>
           {records.map((rec, i) => {
-            const status = getStatus(rec.report);
+            const status = getScore(rec.report);
             const dt = formatDate(rec.date);
             return (
               <tr

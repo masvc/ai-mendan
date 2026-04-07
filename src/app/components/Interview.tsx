@@ -151,6 +151,7 @@ export default function Interview() {
   };
 
   const nextQuestion = () => {
+    if (!textInput.trim()) { toast("声で答えてから「次へ」を押してね"); return; }
     if (currentQ + 1 < QUESTIONS.length) {
       const next = currentQ + 1;
       store.setCurrentQ(next);

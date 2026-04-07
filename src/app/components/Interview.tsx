@@ -47,6 +47,7 @@ export default function Interview() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const prevTextRef = useRef("");
+  const micPausedRef = useRef(false);
 
   // --- 復帰処理（クライアントのみ） ---
   const resumed = useRef(false);
@@ -76,10 +77,21 @@ export default function Interview() {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     const audio = new Audio(`/audio/kenzaki/${audioKey}.wav?v=2`);
     audioRef.current = audio;
-    audio.onplay = () => setIsSpeaking(true);
-    audio.onended = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
-    audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
-    audio.play().catch(() => { setIsSpeaking(false); onEnd?.(); });
+    // 再生中は音声認識を一時停止（翔平の声を拾わないように）
+    const pauseRecognition = () => {
+      micPausedRef.current = true;
+      const r = recognitionRef.current;
+      if (r) { try { r.stop(); } catch { /* ignore */ } }
+    };
+    const resumeRecognition = () => {
+      micPausedRef.current = false;
+      const r = recognitionRef.current;
+      if (r) { try { r.start(); } catch { /* ignore */ } }
+    };
+    audio.onplay = () => { setIsSpeaking(true); pauseRecognition(); };
+    audio.onended = () => { setIsSpeaking(false); audioRef.current = null; resumeRecognition(); onEnd?.(); };
+    audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; resumeRecognition(); onEnd?.(); };
+    audio.play().catch(() => { setIsSpeaking(false); resumeRecognition(); onEnd?.(); });
   }, []);
 
   const stopAudio = useCallback(() => {
@@ -110,8 +122,8 @@ export default function Interview() {
       // エラー後も自動リスタート
     };
     r.onend = () => {
-      // 通しで動かすため、refが残っていれば自動リスタート
-      if (recognitionRef.current === r) {
+      // 通しで動かすため、refが残っていれば自動リスタート（一時停止中はスキップ）
+      if (recognitionRef.current === r && !micPausedRef.current) {
         try { r.start(); } catch { /* ignore */ }
       }
     };
@@ -177,7 +189,7 @@ export default function Interview() {
           if (e.error === "no-speech") return;
         };
         nr.onend = () => {
-          if (recognitionRef.current === nr) {
+          if (recognitionRef.current === nr && !micPausedRef.current) {
             try { nr.start(); } catch { /* ignore */ }
           }
         };

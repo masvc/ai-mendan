@@ -205,13 +205,15 @@ export default function Interview() {
     store.setCurrentQ(0);
     setShowInput(false);
     setDisplayText(CONFIG.greeting1);
-    // 挨拶の間にマイクを起動しておく
-    startMic();
     playAudio("greeting1", CONFIG.greeting1, () => {
       setDisplayText(CONFIG.greeting2);
       playAudio("greeting2", CONFIG.greeting2, () => {
         setDisplayText(QUESTIONS[0].q);
-        playAudio("q1", QUESTIONS[0].q, () => setShowInput(true));
+        playAudio("q1", QUESTIONS[0].q, () => {
+          // 全挨拶+最初の質問が終わってからマイク起動
+          startMic();
+          setShowInput(true);
+        });
       });
     });
   };
@@ -221,9 +223,12 @@ export default function Interview() {
     store.setScreen("question");
     store.setCurrentQ(safeQ);
     setShowInput(false);
-    startMic();
     setDisplayText(QUESTIONS[safeQ].q);
-    playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q, () => setShowInput(true));
+    playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q, () => {
+      // 質問音声が終わってからマイク起動
+      startMic();
+      setShowInput(true);
+    });
     toast("続きから再開します");
   };
 

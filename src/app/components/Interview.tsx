@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Toaster, toast } from "sonner";
-import { ChevronRight, RotateCcw, Mic } from "lucide-react";
+import { ChevronRight, RotateCcw, Home, Mic } from "lucide-react";
 import clsx from "clsx";
 import { useInterviewStore } from "../store";
 import Character from "./Character";
@@ -277,7 +277,10 @@ export default function Interview() {
       </div>
 
       <div className="absolute top-3 left-4 right-4 z-20 flex justify-between items-center">
-        <div className="w-[80px]" />
+        <button onClick={() => { stopMic(); store.reset(); location.reload(); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors w-[80px]">
+          <Home size={18} />
+          <span className="text-xs font-bold">トップへ</span>
+        </button>
         {screen === "question" && isListening && (
           <span className="flex items-center gap-1 text-red-500 text-sm font-bold">
             <Mic size={16} className="animate-pulse" />

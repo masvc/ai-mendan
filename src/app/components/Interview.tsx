@@ -13,7 +13,7 @@ import AnswerBox from "./AnswerBox";
 import ConfirmScreen from "./ConfirmScreen";
 
 const CONFIG = {
-  greeting1: "こんにちは、エーアイの翔平です。今日はちょっとしたお話の時間だよ。",
+  greeting1: "こんにちは、株式会社安心の絆の翔平です。今日はちょっとしたお話の時間だよ。",
   greeting2: "うまく話そうとしなくて大丈夫。落ち着いてゆっくり話してね。",
   complete1: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通すよ。",
   complete2: "2日以内に連絡するから、少しだけ待っててね。不安なことがあれば、いつでも気軽に聞いてね。",
@@ -101,8 +101,18 @@ export default function Interview() {
       for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
       store.setTextInput(prevTextRef.current + t);
     };
-    r.onerror = () => { setIsRecording(false); toast.error("音声認識でエラーが発生しました"); };
-    r.onend = () => setIsRecording(false);
+    r.onerror = (e: SpeechRecognitionErrorEvent) => {
+      // no-speech は沈黙で発生するだけなので無視（自動リスタートに任せる）
+      if (e.error === "no-speech") return;
+      setIsRecording(false);
+      toast.error("音声認識でエラーが発生しました");
+    };
+    r.onend = () => {
+      // 録音中なら自動リスタート（スマホで勝手に止まる対策）
+      if (recognitionRef.current === r) {
+        try { r.start(); } catch { setIsRecording(false); }
+      }
+    };
     recognitionRef.current = r; r.start();
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {

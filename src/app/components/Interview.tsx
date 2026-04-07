@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useSwipeable } from "react-swipeable";
 import { AnimatePresence, motion } from "motion/react";
 import { Toaster, toast } from "sonner";
-import { ChevronLeft, ChevronRight, RotateCcw, Play, Home, Mic } from "lucide-react";
+import { ChevronRight, RotateCcw, Mic } from "lucide-react";
 import clsx from "clsx";
 import { useInterviewStore } from "../store";
 import Character from "./Character";
@@ -20,14 +19,14 @@ const CONFIG = {
 };
 
 export const QUESTIONS = [
-  { q: "最近「誰かの役に立てた」と感じたことってある？小さなことでも大丈夫だよ。", short: "役に立てた経験", reaction: "そうなんだ、素敵だね。話してくれてありがとう。" },
-  { q: "仕事で大切にしていることを3つ挙げるとしたら何かな？", short: "仕事で大切なこと", reaction: "なるほどね、いい考え方だと思うよ。" },
-  { q: "これまでの職場で嬉しかったことと、しんどかったこと、教えてくれる？", short: "嬉しい/しんどい経験", reaction: "話してくれてありがとう。無理しなくていいからね。" },
-  { q: "人と関わる仕事で、心がけていることってある？", short: "心がけていること", reaction: "うん、それすごく大事なことだよね。" },
-  { q: "株式会社安心の絆で働くことに興味を持ってくれた理由を教えてくれる？", short: "興味を持った理由", reaction: "ありがとう。そう思ってくれて嬉しいよ。" },
-  { q: "チームで働くとき、意識していることは？", short: "チームワーク", reaction: "チームワーク大事にしてるんだね。いいね。" },
-  { q: "これまでの経験の中で「成長できた」と感じた瞬間ってある？", short: "成長の瞬間", reaction: "いい経験をしてきたんだね。あなたのペースでいいからね。" },
-  { q: "株式会社安心の絆で、どんな働き方をしてみたい？希望があれば聞かせて。", short: "希望の働き方", reaction: "ありがとう！全部聞けてよかった。" },
+  { q: "最近「誰かの役に立てた」と感じたことってある？小さなことでも大丈夫だよ。", short: "役に立てた経験" },
+  { q: "仕事で大切にしていることを3つ挙げるとしたら何かな？", short: "仕事で大切なこと" },
+  { q: "これまでの職場で嬉しかったことと、しんどかったこと、教えてくれる？", short: "嬉しい/しんどい経験" },
+  { q: "人と関わる仕事で、心がけていることってある？", short: "心がけていること" },
+  { q: "株式会社安心の絆で働くことに興味を持ってくれた理由を教えてくれる？", short: "興味を持った理由" },
+  { q: "チームで働くとき、意識していることは？", short: "チームワーク" },
+  { q: "これまでの経験の中で「成長できた」と感じた瞬間ってある？", short: "成長の瞬間" },
+  { q: "株式会社安心の絆で、どんな働き方をしてみたい？希望があれば聞かせて。", short: "希望の働き方" },
 ];
 
 export default function Interview() {
@@ -38,7 +37,6 @@ export default function Interview() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [audioBlobs, setAudioBlobs] = useState<Blob[]>([]);
-  const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const [hasHistory, setHasHistory] = useState(false);
   const [showInput, setShowInput] = useState(false);
 
@@ -46,33 +44,20 @@ export default function Interview() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const prevTextRef = useRef("");
+  const resultOffsetRef = useRef(0);
+  const resultCountRef = useRef(0);
 
-  // --- 復帰処理（クライアントのみ） ---
+  // --- 復帰処理 ---
   const resumed = useRef(false);
   useEffect(() => {
     if (resumed.current) return;
     resumed.current = true;
     useInterviewStore.persist.rehydrate();
     setHasHistory(!!localStorage.getItem("ai-mendan-history"));
+  }, []);
 
-    const unsub = useInterviewStore.subscribe((s) => {
-      if (s.screen === "question" && s.answers.length > 0) {
-        setDisplayText(QUESTIONS[s.currentQ]?.q || "");
-        setShowInput(true);
-        toast("前回の続きから再開します", { duration: 3000 });
-      } else if (s.screen === "confirm") {
-        setDisplayText("全部の質問が終わったよ！回答内容を確認して、よければ提出してね。");
-        toast("前回の続きから再開します", { duration: 3000 });
-      } else if (s.screen === "complete") {
-        setDisplayText(CONFIG.complete2);
-      }
-      unsub();
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // --- 音声再生 ---
-  const playAudio = useCallback((audioKey: string, _text: string, onEnd?: () => void) => {
+  // --- 音声再生（挨拶・完了のみ） ---
+  const playAudio = useCallback((audioKey: string, onEnd?: () => void) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     const audio = new Audio(`/audio/kenzaki/${audioKey}.wav?v=2`);
     audioRef.current = audio;
@@ -82,38 +67,33 @@ export default function Interview() {
     audio.play().catch(() => { setIsSpeaking(false); onEnd?.(); });
   }, []);
 
-  const stopAudio = useCallback(() => {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    setIsSpeaking(false);
-  }, []);
-
-  // --- マイク ---
-  // 認識を開始（質問音声が終わった後に呼ぶ）
-  const startRecognition = useCallback(() => {
-    // 既存のを止めてから
-    const old = recognitionRef.current;
-    if (old) { old.onresult = null; old.onend = null; old.onerror = null; try { old.stop(); } catch { /* */ } }
-    recognitionRef.current = null;
+  // --- マイク（1本通し） ---
+  const startMic = useCallback(() => {
+    if (recognitionRef.current) return;
 
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
     if (!API) { toast.error("このブラウザは音声入力に対応していません"); return; }
 
-    prevTextRef.current = "";
+    resultOffsetRef.current = 0;
+    resultCountRef.current = 0;
     store.setTextInput("");
+
     const r = new API();
     r.lang = "ja-JP";
     r.interimResults = true;
     r.continuous = true;
     r.onresult = (e: SpeechRecognitionEvent) => {
+      resultCountRef.current = e.results.length;
       let t = "";
-      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
-      store.setTextInput(prevTextRef.current + t);
+      for (let i = resultOffsetRef.current; i < e.results.length; i++) {
+        t += e.results[i][0].transcript;
+      }
+      store.setTextInput(t);
     };
     r.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === "no-speech") return;
     };
     r.onend = () => {
-      // スマホ対策: 勝手に止まったら再開
       if (recognitionRef.current === r) {
         try { r.start(); } catch { /* ignore */ }
       }
@@ -121,17 +101,8 @@ export default function Interview() {
     recognitionRef.current = r;
     try { r.start(); } catch { /* ignore */ }
     setIsListening(true);
-  }, [store]);
 
-  const stopRecognition = useCallback(() => {
-    const r = recognitionRef.current;
-    if (r) { r.onresult = null; r.onend = null; r.onerror = null; try { r.stop(); } catch { /* */ } }
-    recognitionRef.current = null;
-    setIsListening(false);
-  }, []);
-
-  // 録音開始（面接開始時に1回だけ）
-  const startMediaRecorder = useCallback(() => {
+    // 録音
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       chunksRef.current = [];
       const mr = new MediaRecorder(stream);
@@ -139,9 +110,14 @@ export default function Interview() {
       mr.start();
       mediaRecorderRef.current = mr;
     }).catch(() => {});
-  }, []);
+  }, [store]);
 
-  const stopMediaRecorder = useCallback(() => {
+  const stopMic = useCallback(() => {
+    const r = recognitionRef.current;
+    if (r) { r.onresult = null; r.onend = null; r.onerror = null; try { r.stop(); } catch { /* */ } }
+    recognitionRef.current = null;
+    setIsListening(false);
+
     const mr = mediaRecorderRef.current;
     if (mr && mr.state !== "inactive") {
       mr.onstop = () => {
@@ -156,85 +132,38 @@ export default function Interview() {
 
   // --- フロー ---
   const startInterview = () => {
+    store.reset();
     store.setScreen("question");
     store.setCurrentQ(0);
     setShowInput(false);
     setDisplayText(CONFIG.greeting1);
-    playAudio("greeting1", CONFIG.greeting1, () => {
+    playAudio("greeting1", () => {
       setDisplayText(CONFIG.greeting2);
-      playAudio("greeting2", CONFIG.greeting2, () => {
+      playAudio("greeting2", () => {
+        startMic();
         setDisplayText(QUESTIONS[0].q);
-        playAudio("q1", QUESTIONS[0].q, () => {
-          startRecognition();
-          startMediaRecorder();
-          setShowInput(true);
-        });
+        setShowInput(true);
       });
     });
   };
 
-  const resumeInterview = () => {
-    const safeQ = Math.min(currentQ, QUESTIONS.length - 1);
-    store.setScreen("question");
-    store.setCurrentQ(safeQ);
-    setShowInput(false);
-    setDisplayText(QUESTIONS[safeQ].q);
-    playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q, () => {
-      startRecognition();
-      startMediaRecorder();
-      setShowInput(true);
-    });
-    toast("続きから再開します");
-  };
-
   const submitAnswer = () => {
     if (!textInput.trim()) return;
-    stopAudio();
-    setSlideDir(1);
-    setShowInput(false);
     store.addAnswer(textInput.trim());
-    // 即座にテキスト表示をクリア（リアクション再生中に前の回答が残らないように）
+    // オフセットを進めてテキストクリア
+    resultOffsetRef.current = resultCountRef.current;
     store.setTextInput("");
-    prevTextRef.current = "";
 
-    setDisplayText(QUESTIONS[currentQ].reaction);
-    playAudio(`r${currentQ + 1}`, QUESTIONS[currentQ].reaction, () => {
-      if (currentQ + 1 < QUESTIONS.length) {
-        const next = currentQ + 1;
-        store.setCurrentQ(next);
-        setDisplayText(QUESTIONS[next].q);
-        stopRecognition();
-        playAudio(`q${next + 1}`, QUESTIONS[next].q, () => {
-          startRecognition();
-          setShowInput(true);
-        });
-      } else {
-        // 全問完了
-        stopRecognition();
-        stopMediaRecorder();
-        const confirmMsg = "全部の質問が終わったよ！回答内容を確認して、よければ提出してね。";
-        setDisplayText(confirmMsg);
-        playAudio("confirm", confirmMsg, () => {
-          store.setScreen("confirm");
-        });
-      }
-    });
-  };
-
-  const goBack = () => {
-    if (currentQ <= 0) return;
-    stopAudio();
-    setSlideDir(-1);
-    setShowInput(false);
-    store.popAnswer();
-    store.setTextInput("");
-    prevTextRef.current = "";
-    stopRecognition();
-    setDisplayText(QUESTIONS[currentQ - 1].q);
-    playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q, () => {
-      startRecognition();
-      setShowInput(true);
-    });
+    if (currentQ + 1 < QUESTIONS.length) {
+      const next = currentQ + 1;
+      store.setCurrentQ(next);
+      setDisplayText(QUESTIONS[next].q);
+    } else {
+      // 全問完了
+      stopMic();
+      store.setScreen("confirm");
+      setDisplayText("全部の質問が終わったよ！回答内容を確認して、よければ提出してね。");
+    }
   };
 
   const submitContact = async () => {
@@ -243,10 +172,9 @@ export default function Interview() {
 
     store.setScreen("complete");
     setDisplayText(CONFIG.complete1);
-    playAudio("complete1", CONFIG.complete1, () => {
+    playAudio("complete1", () => {
       setDisplayText(CONFIG.complete2);
-      playAudio("complete2", CONFIG.complete2, () => {
-        // 音声終了後5秒でトップに自動遷移
+      playAudio("complete2", () => {
         setTimeout(() => { store.reset(); location.reload(); }, 5000);
       });
     });
@@ -278,14 +206,6 @@ export default function Interview() {
     toast.success("提出が完了しました");
   };
 
-  // --- スワイプ ---
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => { if (screen === "question" && textInput.trim()) submitAnswer(); },
-    onSwipedRight: () => { if (screen === "question" && currentQ > 0) goBack(); },
-    trackMouse: false,
-    delta: 50,
-  });
-
   const expression: "normal" | "smile" | "happy" | "talking" =
     isSpeaking ? "talking" : screen === "complete" ? "happy" : "normal";
 
@@ -294,7 +214,6 @@ export default function Interview() {
 
   // ===== タイトル =====
   if (screen === "title") {
-    const hasProgress = store.hasProgress();
     return (
       <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col justify-center px-8 gap-10">
         <Toaster position="top-center" />
@@ -307,19 +226,10 @@ export default function Interview() {
           <p className="text-slate-400 text-sm mt-3">※イヤホンの使用をおすすめします</p>
         </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45 }} className="flex flex-col items-center gap-4">
-          <div className="flex gap-4">
-            <button onClick={() => { store.reset(); startInterview(); }} className="w-[130px] h-[130px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all gap-1">
-              <RotateCcw size={24} />
-              <span>初めから</span>
-            </button>
-            <button onClick={resumeInterview} disabled={!hasProgress} className={clsx("w-[130px] h-[130px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg transition-all gap-1 active:translate-y-[1px]", hasProgress ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-slate-200 text-slate-400 cursor-not-allowed")}>
-              <Play size={28} />
-              <span>続きから</span>
-            </button>
-          </div>
-          {hasProgress && (
-            <p className="text-slate-400 text-sm text-center">Q{Math.min(answers.length + 1, QUESTIONS.length)}まで保存済み</p>
-          )}
+          <button onClick={startInterview} className="w-[160px] h-[160px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all gap-1">
+            <RotateCcw size={24} />
+            <span>面接をはじめる</span>
+          </button>
           {hasHistory && (
             <a href="/results" className="text-sm text-slate-400 underline underline-offset-2">
               提出済みの回答を見る
@@ -352,27 +262,21 @@ export default function Interview() {
     );
   }
 
-  // ===== 面談画面（質問 + 完了） =====
+  // ===== 面談画面 =====
   return (
-    <div {...swipeHandlers} className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] relative bg-slate-100 overflow-hidden">
+    <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] relative bg-slate-100 overflow-hidden">
       <Toaster position="top-center" />
 
-      {/* キャラクター */}
       <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="absolute inset-0 flex items-center justify-center z-0">
         <Character expression={expression} />
       </motion.div>
 
-      {/* プログレスバー */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-slate-200 z-20">
         <motion.div className="h-full bg-slate-800" animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
       </div>
 
-      {/* トップバー */}
       <div className="absolute top-3 left-4 right-4 z-20 flex justify-between items-center">
-        <button onClick={() => { stopAudio(); stopRecognition(); stopMediaRecorder(); store.setScreen("title"); toast("回答は自動保存済み。「続きから」で再開できます", { duration: 3000 }); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors w-[80px]">
-          <Home size={18} />
-          <span className="text-xs font-bold">中断する</span>
-        </button>
+        <div className="w-[80px]" />
         {screen === "question" && isListening && (
           <span className="flex items-center gap-1 text-red-500 text-sm font-bold">
             <Mic size={16} className="animate-pulse" />
@@ -384,15 +288,14 @@ export default function Interview() {
         )}
       </div>
 
-      {/* 下部UI */}
       <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-col gap-4 min-w-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={`msg-${currentQ}-${displayText.slice(0, 10)}`}
-            initial={{ opacity: 0, x: slideDir * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: slideDir * -40 }}
-            transition={{ duration: 0.25 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
           >
             <MessageBox text={displayText} />
           </motion.div>
@@ -413,13 +316,9 @@ export default function Interview() {
         </AnimatePresence>
 
         {screen === "question" ? (
-          <div className="flex justify-between items-center">
-            <button onClick={goBack} disabled={currentQ <= 0 || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", currentQ > 0 ? "bg-white/90 border-2 border-slate-200 text-slate-600 shadow-[0_2px_0_#e2e8f0] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
-              <ChevronLeft size={22} />
-              <span className="mt-1">戻る</span>
-            </button>
-            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
-              <ChevronRight size={22} />
+          <div className="flex justify-center">
+            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[100px] h-[100px] flex flex-col items-center justify-center rounded-2xl text-base font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
+              <ChevronRight size={26} />
               <span className="mt-1">次へ</span>
             </button>
           </div>

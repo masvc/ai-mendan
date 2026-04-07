@@ -13,7 +13,7 @@ import ConfirmScreen from "./ConfirmScreen";
 
 const CONFIG = {
   greeting1: "こんにちは、株式会社安心の絆の翔平です。今日はちょっとしたお話の時間だよ。",
-  greeting2: "うまく話そうとしなくて大丈夫。落ち着いてゆっくり話してね。",
+  greeting2: "各質問に答えたら「次へ」を押してね。全部で8問あるよ！",
   complete1: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通すよ。",
   complete2: "2日以内に連絡するから、少しだけ待っててね。不安なことがあれば、いつでも気軽に聞いてね。",
 };
@@ -139,11 +139,12 @@ export default function Interview() {
     setDisplayText(CONFIG.greeting1);
     playAudio("greeting1", () => {
       setDisplayText(CONFIG.greeting2);
-      playAudio("greeting2", () => {
+      // 案内テキストを2秒表示してからマイク起動+Q1へ
+      setTimeout(() => {
         startMic();
-        setDisplayText(QUESTIONS[0].q);
+        setDisplayText(`Q1. ${QUESTIONS[0].q}`);
         setShowInput(true);
-      });
+      }, 2000);
     });
   };
 
@@ -157,7 +158,7 @@ export default function Interview() {
     if (currentQ + 1 < QUESTIONS.length) {
       const next = currentQ + 1;
       store.setCurrentQ(next);
-      setDisplayText(QUESTIONS[next].q);
+      setDisplayText(`Q${next + 1}. ${QUESTIONS[next].q}`);
     } else {
       // 全問完了
       stopMic();

@@ -318,6 +318,7 @@ export default function Interview() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="text-center">
           <p className="text-slate-700 text-2xl font-bold">履歴書なし・スマホで5分</p>
           <p className="text-slate-400 text-lg mt-2">匿名OK / 音声で回答 / 8問</p>
+          <p className="text-slate-400 text-sm mt-3">※イヤホンの使用をおすすめします</p>
         </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45 }} className="flex flex-col items-center gap-4">
           <div className="flex gap-4">

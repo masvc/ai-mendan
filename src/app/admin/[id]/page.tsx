@@ -36,7 +36,7 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname: rec.nickname, contact: rec.contact, answers: rec.answers }),
+        body: JSON.stringify({ nickname: rec.nickname, answers: rec.answers }),
       });
       const data = await res.json();
       const updated = { ...rec, report: data.report };

@@ -207,7 +207,7 @@ export default function Interview() {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname: nickname.trim(), contact: contact.trim(), answers: answersData }),
+        body: JSON.stringify({ nickname: nickname.trim(), answers: answersData }),
       });
       const data = await res.json();
       reportText = data.report || "";

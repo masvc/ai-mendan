@@ -158,12 +158,10 @@ export default function Interview() {
     setIsListening(false);
   }, []);
 
-  // 質問切り替え時にprevTextRefをリセット（新しい質問用のテキスト蓄積を開始）
-  const resetTextForNewQuestion = useCallback(() => {
+  // 質問切り替え時に認識をリセット（停止のみ。再開はrestartRecognitionで明示的に行う）
+  const resetRecognition = useCallback(() => {
     prevTextRef.current = "";
     store.setTextInput("");
-    // SpeechRecognitionのresultIndexはリセットできないので、
-    // 一旦stop→startで新しいセッションにする
     const r = recognitionRef.current;
     if (r) {
       r.onresult = null;
@@ -172,32 +170,32 @@ export default function Interview() {
       r.stop();
       recognitionRef.current = null;
     }
-    // 少し待ってから再開（前のセッションの終了を待つ）
-    setTimeout(() => {
-      if (!recognitionRef.current) {
-        const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-        if (!API) return;
-        const nr = new API();
-        nr.lang = "ja-JP";
-        nr.interimResults = true;
-        nr.continuous = true;
-        nr.onresult = (e: SpeechRecognitionEvent) => {
-          let t = "";
-          for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
-          store.setTextInput(prevTextRef.current + t);
-        };
-        nr.onerror = (e: SpeechRecognitionErrorEvent) => {
-          if (e.error === "no-speech") return;
-        };
-        nr.onend = () => {
-          if (recognitionRef.current === nr && !micPausedRef.current) {
-            try { nr.start(); } catch { /* ignore */ }
-          }
-        };
-        recognitionRef.current = nr;
+  }, [store]);
+
+  // 新しいSpeechRecognitionセッションを開始（質問音声の再生終了後に呼ぶ）
+  const restartRecognition = useCallback(() => {
+    if (recognitionRef.current) return; // 既に起動中
+    const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
+    if (!API) return;
+    const nr = new API();
+    nr.lang = "ja-JP";
+    nr.interimResults = true;
+    nr.continuous = true;
+    nr.onresult = (e: SpeechRecognitionEvent) => {
+      let t = "";
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      store.setTextInput(prevTextRef.current + t);
+    };
+    nr.onerror = (e: SpeechRecognitionErrorEvent) => {
+      if (e.error === "no-speech") return;
+    };
+    nr.onend = () => {
+      if (recognitionRef.current === nr && !micPausedRef.current) {
         try { nr.start(); } catch { /* ignore */ }
       }
-    }, 300);
+    };
+    recognitionRef.current = nr;
+    try { nr.start(); } catch { /* ignore */ }
   }, [store]);
 
   // --- フロー ---
@@ -249,9 +247,12 @@ export default function Interview() {
         const next = currentQ + 1;
         store.setCurrentQ(next);
         setDisplayText(QUESTIONS[next].q);
-        // 認識をリセットして新しい質問用に
-        resetTextForNewQuestion();
-        playAudio(`q${next + 1}`, QUESTIONS[next].q, () => setShowInput(true));
+        // 認識をリセットして、次の質問音声が終わったら再開
+        resetRecognition();
+        playAudio(`q${next + 1}`, QUESTIONS[next].q, () => {
+          restartRecognition();
+          setShowInput(true);
+        });
       } else {
         // 全問完了 → マイク停止
         stopMic();
@@ -272,9 +273,12 @@ export default function Interview() {
     store.popAnswer();
     store.setTextInput("");
     prevTextRef.current = "";
-    resetTextForNewQuestion();
+    resetRecognition();
     setDisplayText(QUESTIONS[currentQ - 1].q);
-    playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q, () => setShowInput(true));
+    playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q, () => {
+      restartRecognition();
+      setShowInput(true);
+    });
   };
 
   const submitContact = async () => {

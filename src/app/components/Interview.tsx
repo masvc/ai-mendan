@@ -4,12 +4,10 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Toaster, toast } from "sonner";
 import { ChevronRight, RotateCcw, Home, Mic } from "lucide-react";
-import clsx from "clsx";
 import { useInterviewStore } from "../store";
 import Character from "./Character";
 import MessageBox from "./MessageBox";
 import AnswerBox from "./AnswerBox";
-import ConfirmScreen from "./ConfirmScreen";
 
 const CONFIG = {
   greeting1: "こんにちは、株式会社安心の絆の翔平です。今日はちょっとしたお話の時間だよ。",
@@ -44,8 +42,7 @@ export default function Interview() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const resultOffsetRef = useRef(0);
-  const resultCountRef = useRef(0);
+  const baseTextRef = useRef(""); // 認識再起動前のテキスト保持
 
   // --- 復帰処理 ---
   const resumed = useRef(false);
@@ -74,8 +71,7 @@ export default function Interview() {
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
     if (!API) { toast.error("このブラウザは音声入力に対応していません"); return; }
 
-    resultOffsetRef.current = 0;
-    resultCountRef.current = 0;
+    baseTextRef.current = "";
     store.setTextInput("");
 
     const r = new API();
@@ -83,18 +79,19 @@ export default function Interview() {
     r.interimResults = true;
     r.continuous = true;
     r.onresult = (e: SpeechRecognitionEvent) => {
-      resultCountRef.current = e.results.length;
       let t = "";
-      for (let i = resultOffsetRef.current; i < e.results.length; i++) {
+      for (let i = 0; i < e.results.length; i++) {
         t += e.results[i][0].transcript;
       }
-      store.setTextInput(t);
+      store.setTextInput(baseTextRef.current + t);
     };
     r.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === "no-speech") return;
     };
     r.onend = () => {
       if (recognitionRef.current === r) {
+        // 再起動前にテキストを保持（スマホで勝手に止まる対策）
+        baseTextRef.current = useInterviewStore.getState().textInput;
         try { r.start(); } catch { /* ignore */ }
       }
     };
@@ -148,20 +145,15 @@ export default function Interview() {
     });
   };
 
-  const submitAnswer = () => {
-    if (!textInput.trim()) return;
-    store.addAnswer(textInput.trim());
-    // オフセットを進めてテキストクリア
-    resultOffsetRef.current = resultCountRef.current;
-    store.setTextInput("");
-
+  const nextQuestion = () => {
     if (currentQ + 1 < QUESTIONS.length) {
       const next = currentQ + 1;
       store.setCurrentQ(next);
       setDisplayText(`Q${next + 1}. ${QUESTIONS[next].q}`);
     } else {
-      // 全問完了
+      // 全問完了 → 全テキストを1つの回答として保存
       stopMic();
+      store.addAnswer(textInput.trim());
       store.setScreen("confirm");
       setDisplayText("全部の質問が終わったよ！回答内容を確認して、よければ提出してね。");
     }
@@ -169,7 +161,8 @@ export default function Interview() {
 
   const submitContact = async () => {
     if (!nickname.trim() || !contact.trim()) return;
-    const answersData = QUESTIONS.map((q, i) => ({ question: q.short, answer: answers[i] || "" }));
+    const fullText = answers[0] || "";
+    const answersData = [{ question: "面接全文", answer: fullText }];
 
     store.setScreen("complete");
     setDisplayText(CONFIG.complete1);
@@ -244,22 +237,43 @@ export default function Interview() {
     );
   }
 
-  // ===== 回答確認 + 連絡先 =====
+  // ===== 確認・提出 =====
   if (screen === "confirm") {
     return (
-      <>
+      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col px-6 py-8 gap-6 overflow-y-auto">
         <Toaster position="top-center" />
-        <ConfirmScreen
-          answers={answers}
-          nickname={nickname}
-          contact={contact}
-          onNicknameChange={store.setNickname}
-          onContactChange={store.setContact}
-          onSubmit={submitContact}
-          onRestart={() => { store.reset(); location.reload(); }}
-          audioBlobs={audioBlobs}
-        />
-      </>
+        <h2 className="text-xl font-bold text-slate-800">回答内容を確認して提出</h2>
+
+        {/* 音声 */}
+        {audioBlobs.length > 0 && (
+          <div>
+            <p className="text-xs text-slate-400 mb-2">面接の録音</p>
+            <audio controls src={URL.createObjectURL(new Blob(audioBlobs, { type: "audio/webm" }))} className="w-full h-10" />
+          </div>
+        )}
+
+        {/* テキスト */}
+        <div className="bg-slate-50 rounded-xl p-4">
+          <p className="text-xs text-slate-400 mb-2">音声認識テキスト</p>
+          <p className="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap">{answers[0] || "（テキストなし）"}</p>
+        </div>
+
+        {/* 連絡先 */}
+        <div className="flex flex-col gap-3">
+          <input type="text" placeholder="ニックネーム" value={nickname} onChange={(e) => store.setNickname(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3 text-base" />
+          <input type="text" placeholder="電話番号 または LINE ID" value={contact} onChange={(e) => store.setContact(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3 text-base" />
+        </div>
+
+        {/* ボタン */}
+        <div className="flex flex-col gap-3 mt-auto">
+          <button onClick={submitContact} disabled={!nickname.trim() || !contact.trim()} className="w-full py-4 rounded-xl font-bold text-lg bg-[#1e293b] text-white disabled:bg-slate-300 disabled:text-slate-500 transition-colors">
+            提出する
+          </button>
+          <button onClick={() => { store.reset(); location.reload(); }} className="text-sm text-slate-400 underline">
+            やり直す
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -321,7 +335,7 @@ export default function Interview() {
 
         {screen === "question" ? (
           <div className="flex justify-center">
-            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[100px] h-[100px] flex flex-col items-center justify-center rounded-2xl text-base font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
+            <button onClick={nextQuestion} disabled={isSpeaking} className="w-[100px] h-[100px] flex flex-col items-center justify-center rounded-2xl text-base font-bold transition-all active:translate-y-[1px] bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none">
               <ChevronRight size={26} />
               <span className="mt-1">次へ</span>
             </button>

@@ -102,7 +102,9 @@ export default function Interview() {
     // 録音（許可完了後にonReady）
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       chunksRef.current = [];
-      const mr = new MediaRecorder(stream);
+      // iOS Safari は webm 非対応なので mp4 にフォールバック
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+      const mr = new MediaRecorder(stream, { mimeType });
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.start();
       mediaRecorderRef.current = mr;
@@ -119,7 +121,7 @@ export default function Interview() {
     const mr = mediaRecorderRef.current;
     if (mr && mr.state !== "inactive") {
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType });
         setAudioBlobs(prev => [...prev, blob]);
         mr.stream.getTracks().forEach(t => t.stop());
         mediaRecorderRef.current = null;
@@ -215,7 +217,7 @@ export default function Interview() {
   // ===== タイトル =====
   if (screen === "title") {
     return (
-      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-white flex flex-col justify-center px-8 gap-10">
+      <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-white flex flex-col justify-center px-8 py-10 gap-10">
         <Toaster position="top-center" />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <h1 className="text-4xl font-black text-slate-800 tracking-wide">AI面談で<br />応募してみよう！</h1>
@@ -254,7 +256,7 @@ export default function Interview() {
         {audioBlobs.length > 0 && (
           <div>
             <p className="text-xs text-slate-400 mb-2">面接の録音</p>
-            <audio controls src={URL.createObjectURL(new Blob(audioBlobs, { type: "audio/webm" }))} className="w-full h-10" />
+            <audio controls src={URL.createObjectURL(new Blob(audioBlobs))} className="w-full h-10" />
           </div>
         )}
 

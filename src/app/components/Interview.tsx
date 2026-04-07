@@ -403,20 +403,18 @@ export default function Interview() {
 
       {/* トップバー */}
       <div className="absolute top-3 left-4 right-4 z-20 flex justify-between items-center">
-        <button onClick={() => { stopAudio(); stopMic(); store.setScreen("title"); toast("回答は自動保存済み。「続きから」で再開できます", { duration: 3000 }); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors">
+        <button onClick={() => { stopAudio(); stopMic(); store.setScreen("title"); toast("回答は自動保存済み。「続きから」で再開できます", { duration: 3000 }); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors w-[80px]">
           <Home size={18} />
           <span className="text-xs font-bold">中断する</span>
         </button>
+        {screen === "question" && isListening && (
+          <span className="flex items-center gap-1 text-red-500 text-sm font-bold">
+            <Mic size={16} className="animate-pulse" />
+            <span>録音中</span>
+          </span>
+        )}
         {screen === "question" && (
-          <div className="flex items-center gap-2">
-            {isListening && (
-              <span className="flex items-center gap-1 text-red-500 text-sm font-bold">
-                <Mic size={16} className="animate-pulse" />
-                <span>録音中</span>
-              </span>
-            )}
-            <p className="text-slate-800 text-lg font-bold">残り{QUESTIONS.length - currentQ}問</p>
-          </div>
+          <p className="text-slate-800 text-lg font-bold w-[80px] text-right">残り{QUESTIONS.length - currentQ}問</p>
         )}
       </div>
 

@@ -343,7 +343,7 @@ export default function Interview() {
         {screen === "question" ? (
           <div className="flex justify-center">
             <button onClick={nextQuestion} disabled={isSpeaking} className="w-full py-4 rounded-2xl text-base font-bold transition-all active:translate-y-[1px] bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none flex items-center justify-center gap-2">
-              <span>答えたら次へ</span>
+              <span>答えたら次の質問へ</span>
               <ChevronRight size={20} />
             </button>
           </div>

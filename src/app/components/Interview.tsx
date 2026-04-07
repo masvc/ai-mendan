@@ -47,7 +47,6 @@ export default function Interview() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const prevTextRef = useRef("");
-  const micPausedRef = useRef(false);
 
   // --- 復帰処理（クライアントのみ） ---
   const resumed = useRef(false);
@@ -77,21 +76,10 @@ export default function Interview() {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     const audio = new Audio(`/audio/kenzaki/${audioKey}.wav?v=2`);
     audioRef.current = audio;
-    // 再生中は音声認識を一時停止（翔平の声を拾わないように）
-    const pauseRecognition = () => {
-      micPausedRef.current = true;
-      const r = recognitionRef.current;
-      if (r) { try { r.stop(); } catch { /* ignore */ } }
-    };
-    const resumeRecognition = () => {
-      micPausedRef.current = false;
-      const r = recognitionRef.current;
-      if (r) { try { r.start(); } catch { /* ignore */ } }
-    };
-    audio.onplay = () => { setIsSpeaking(true); pauseRecognition(); };
-    audio.onended = () => { setIsSpeaking(false); audioRef.current = null; resumeRecognition(); onEnd?.(); };
-    audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; resumeRecognition(); onEnd?.(); };
-    audio.play().catch(() => { setIsSpeaking(false); resumeRecognition(); onEnd?.(); });
+    audio.onplay = () => { setIsSpeaking(true); };
+    audio.onended = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
+    audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
+    audio.play().catch(() => { setIsSpeaking(false); onEnd?.(); });
   }, []);
 
   const stopAudio = useCallback(() => {
@@ -99,19 +87,23 @@ export default function Interview() {
     setIsSpeaking(false);
   }, []);
 
-  // --- マイク（通しで起動） ---
-  const startMic = useCallback(() => {
-    if (recognitionRef.current) return; // 既に起動中
+  // --- マイク ---
+  // 認識を開始（質問音声が終わった後に呼ぶ）
+  const startRecognition = useCallback(() => {
+    // 既存のを止めてから
+    const old = recognitionRef.current;
+    if (old) { old.onresult = null; old.onend = null; old.onerror = null; try { old.stop(); } catch { /* */ } }
+    recognitionRef.current = null;
 
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
     if (!API) { toast.error("このブラウザは音声入力に対応していません"); return; }
 
     prevTextRef.current = "";
+    store.setTextInput("");
     const r = new API();
     r.lang = "ja-JP";
     r.interimResults = true;
     r.continuous = true;
-
     r.onresult = (e: SpeechRecognitionEvent) => {
       let t = "";
       for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
@@ -119,20 +111,27 @@ export default function Interview() {
     };
     r.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error === "no-speech") return;
-      // エラー後も自動リスタート
     };
     r.onend = () => {
-      // 通しで動かすため、refが残っていれば自動リスタート（一時停止中はスキップ）
-      if (recognitionRef.current === r && !micPausedRef.current) {
+      // スマホ対策: 勝手に止まったら再開
+      if (recognitionRef.current === r) {
         try { r.start(); } catch { /* ignore */ }
       }
     };
-
     recognitionRef.current = r;
-    r.start();
+    try { r.start(); } catch { /* ignore */ }
     setIsListening(true);
+  }, [store]);
 
-    // 録音（1本通し）
+  const stopRecognition = useCallback(() => {
+    const r = recognitionRef.current;
+    if (r) { r.onresult = null; r.onend = null; r.onerror = null; try { r.stop(); } catch { /* */ } }
+    recognitionRef.current = null;
+    setIsListening(false);
+  }, []);
+
+  // 録音開始（面接開始時に1回だけ）
+  const startMediaRecorder = useCallback(() => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       chunksRef.current = [];
       const mr = new MediaRecorder(stream);
@@ -140,11 +139,9 @@ export default function Interview() {
       mr.start();
       mediaRecorderRef.current = mr;
     }).catch(() => {});
-  }, [store]);
+  }, []);
 
-  const stopMic = useCallback(() => {
-    const r = recognitionRef.current;
-    if (r) { r.onresult = null; r.onend = null; r.onerror = null; r.stop(); recognitionRef.current = null; }
+  const stopMediaRecorder = useCallback(() => {
     const mr = mediaRecorderRef.current;
     if (mr && mr.state !== "inactive") {
       mr.onstop = () => {
@@ -155,48 +152,7 @@ export default function Interview() {
       };
       mr.stop();
     }
-    setIsListening(false);
   }, []);
-
-  // 質問切り替え時に認識をリセット（停止のみ。再開はrestartRecognitionで明示的に行う）
-  const resetRecognition = useCallback(() => {
-    prevTextRef.current = "";
-    store.setTextInput("");
-    const r = recognitionRef.current;
-    if (r) {
-      r.onresult = null;
-      r.onend = null;
-      r.onerror = null;
-      r.stop();
-      recognitionRef.current = null;
-    }
-  }, [store]);
-
-  // 新しいSpeechRecognitionセッションを開始（質問音声の再生終了後に呼ぶ）
-  const restartRecognition = useCallback(() => {
-    if (recognitionRef.current) return; // 既に起動中
-    const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-    if (!API) return;
-    const nr = new API();
-    nr.lang = "ja-JP";
-    nr.interimResults = true;
-    nr.continuous = true;
-    nr.onresult = (e: SpeechRecognitionEvent) => {
-      let t = "";
-      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
-      store.setTextInput(prevTextRef.current + t);
-    };
-    nr.onerror = (e: SpeechRecognitionErrorEvent) => {
-      if (e.error === "no-speech") return;
-    };
-    nr.onend = () => {
-      if (recognitionRef.current === nr && !micPausedRef.current) {
-        try { nr.start(); } catch { /* ignore */ }
-      }
-    };
-    recognitionRef.current = nr;
-    try { nr.start(); } catch { /* ignore */ }
-  }, [store]);
 
   // --- フロー ---
   const startInterview = () => {
@@ -209,8 +165,8 @@ export default function Interview() {
       playAudio("greeting2", CONFIG.greeting2, () => {
         setDisplayText(QUESTIONS[0].q);
         playAudio("q1", QUESTIONS[0].q, () => {
-          // 全挨拶+最初の質問が終わってからマイク起動
-          startMic();
+          startRecognition();
+          startMediaRecorder();
           setShowInput(true);
         });
       });
@@ -224,8 +180,8 @@ export default function Interview() {
     setShowInput(false);
     setDisplayText(QUESTIONS[safeQ].q);
     playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q, () => {
-      // 質問音声が終わってからマイク起動
-      startMic();
+      startRecognition();
+      startMediaRecorder();
       setShowInput(true);
     });
     toast("続きから再開します");
@@ -247,15 +203,15 @@ export default function Interview() {
         const next = currentQ + 1;
         store.setCurrentQ(next);
         setDisplayText(QUESTIONS[next].q);
-        // 認識をリセットして、次の質問音声が終わったら再開
-        resetRecognition();
+        stopRecognition();
         playAudio(`q${next + 1}`, QUESTIONS[next].q, () => {
-          restartRecognition();
+          startRecognition();
           setShowInput(true);
         });
       } else {
-        // 全問完了 → マイク停止
-        stopMic();
+        // 全問完了
+        stopRecognition();
+        stopMediaRecorder();
         const confirmMsg = "全部の質問が終わったよ！回答内容を確認して、よければ提出してね。";
         setDisplayText(confirmMsg);
         playAudio("confirm", confirmMsg, () => {
@@ -273,10 +229,10 @@ export default function Interview() {
     store.popAnswer();
     store.setTextInput("");
     prevTextRef.current = "";
-    resetRecognition();
+    stopRecognition();
     setDisplayText(QUESTIONS[currentQ - 1].q);
     playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q, () => {
-      restartRecognition();
+      startRecognition();
       setShowInput(true);
     });
   };
@@ -413,7 +369,7 @@ export default function Interview() {
 
       {/* トップバー */}
       <div className="absolute top-3 left-4 right-4 z-20 flex justify-between items-center">
-        <button onClick={() => { stopAudio(); stopMic(); store.setScreen("title"); toast("回答は自動保存済み。「続きから」で再開できます", { duration: 3000 }); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors w-[80px]">
+        <button onClick={() => { stopAudio(); stopRecognition(); stopMediaRecorder(); store.setScreen("title"); toast("回答は自動保存済み。「続きから」で再開できます", { duration: 3000 }); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors w-[80px]">
           <Home size={18} />
           <span className="text-xs font-bold">中断する</span>
         </button>

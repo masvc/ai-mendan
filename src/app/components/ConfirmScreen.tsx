@@ -95,14 +95,17 @@ export default function ConfirmScreen({
             <div className="px-6 py-4 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800">回答内容</h3>
             </div>
+            {audioBlobs.length > 0 && (
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                <p className="text-xs text-slate-400 mb-2">面接の録音</p>
+                <audio controls src={URL.createObjectURL(new Blob(audioBlobs, { type: "audio/webm" }))} className="w-full h-10" />
+              </div>
+            )}
             <div className="divide-y divide-slate-100">
               {QUESTIONS.map((q, i) => (
                 <div key={i} className="px-6 py-5">
                   <p className="text-[#4a9e8e] text-xs font-bold mb-2">Q{i + 1}. {q.short}</p>
                   <p className="text-slate-800 text-base leading-relaxed">{answers[i] || <span className="text-slate-300">（未回答）</span>}</p>
-                  {audioBlobs[i] && (
-                    <audio controls src={URL.createObjectURL(audioBlobs[i])} className="mt-3 w-full h-10" />
-                  )}
                 </div>
               ))}
             </div>

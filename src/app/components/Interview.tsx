@@ -136,12 +136,11 @@ export default function Interview() {
     setDisplayText(CONFIG.greeting1);
     playAudio("greeting1", () => {
       setDisplayText(CONFIG.greeting2);
-      // 案内テキストを2秒表示してからマイク起動+Q1へ
-      setTimeout(() => {
+      playAudio("greeting2", () => {
         startMic();
         setDisplayText(`Q1. ${QUESTIONS[0].q}`);
         setShowInput(true);
-      }, 2000);
+      });
     });
   };
 
@@ -260,8 +259,14 @@ export default function Interview() {
 
         {/* 連絡先 */}
         <div className="flex flex-col gap-3">
-          <input type="text" placeholder="ニックネーム" value={nickname} onChange={(e) => store.setNickname(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3 text-base" />
-          <input type="text" placeholder="電話番号 または LINE ID" value={contact} onChange={(e) => store.setContact(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3 text-base" />
+          <div>
+            <label className="text-sm font-bold text-slate-700">ニックネーム <span className="text-red-500">*</span></label>
+            <input type="text" placeholder="ニックネーム" value={nickname} onChange={(e) => store.setNickname(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3 text-base w-full mt-1" />
+          </div>
+          <div>
+            <label className="text-sm font-bold text-slate-700">電話番号 または LINE ID <span className="text-red-500">*</span></label>
+            <input type="text" placeholder="電話番号 または LINE ID" value={contact} onChange={(e) => store.setContact(e.target.value)} className="border border-slate-200 rounded-xl px-4 py-3 text-base w-full mt-1" />
+          </div>
         </div>
 
         {/* ボタン */}

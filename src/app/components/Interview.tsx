@@ -11,7 +11,8 @@ import AnswerBox from "./AnswerBox";
 
 const CONFIG = {
   greeting1: "こんにちは、株式会社安心の絆の翔平です。今日はちょっとしたお話の時間だよ。",
-  greeting2: "各質問に答えたら「次へ」を押してね。全部で8問あるよ！\n※文字の表示はそのまま積み重なりますが気にしないでね。",
+  greeting2: "各質問に答えたら「次へ」を押してね。全部で8問あるよ！",
+  greeting3: "話した言葉が画面に出るけど、消えずにそのまま残るよ。気にしないでね！",
   complete1: "今日はお話を聞かせてくれて、ありがとう！あなたの想いは、スタッフがきちんと目を通すよ。",
   complete2: "2日以内に連絡するから、少しだけ待っててね。不安なことがあれば、いつでも気軽に聞いてね。",
 };
@@ -137,10 +138,13 @@ export default function Interview() {
     playAudio("greeting1", () => {
       setDisplayText(CONFIG.greeting2);
       playAudio("greeting2", () => {
-        // greeting2が終わってからマイク許可→許可完了後にQ1表示
-        startMic(() => {
-          setDisplayText(`Q1. ${QUESTIONS[0].q}`);
-          setShowInput(true);
+        setDisplayText(CONFIG.greeting3);
+        playAudio("greeting3", () => {
+          // greeting3が終わってからマイク許可→許可完了後にQ1表示
+          startMic(() => {
+            setDisplayText(`Q1. ${QUESTIONS[0].q}`);
+            setShowInput(true);
+          });
         });
       });
     });

@@ -133,12 +133,12 @@ export default function Interview() {
     store.setScreen("question");
     store.setCurrentQ(0);
     setShowInput(false);
-    // マイク許可を先に取得（挨拶音声中にモーダルを出す）
-    startMic();
     setDisplayText(CONFIG.greeting1);
     playAudio("greeting1", () => {
       setDisplayText(CONFIG.greeting2);
       playAudio("greeting2", () => {
+        // greeting2が終わってからマイク許可→Q1
+        startMic();
         setDisplayText(`Q1. ${QUESTIONS[0].q}`);
         setShowInput(true);
       });

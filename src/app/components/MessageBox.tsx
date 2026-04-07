@@ -18,7 +18,7 @@ export default function MessageBox({ text }: Props) {
     <div className="bg-[#1e293b]/90 backdrop-blur-md rounded-2xl overflow-hidden w-full min-w-0">
       <div className="px-6 py-6 h-[150px] overflow-y-auto overflow-x-hidden flex items-center">
         <div className="min-w-0 w-full">
-          <p className="text-white text-lg leading-[1.8] break-words text-center whitespace-pre-wrap">{lines.join("\n")}</p>
+          <p className="text-white text-lg font-bold leading-[1.8] break-words text-center whitespace-pre-wrap">{lines.join("\n")}</p>
         </div>
       </div>
     </div>

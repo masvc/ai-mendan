@@ -369,7 +369,7 @@ export default function Interview() {
 
         {screen === "question" ? (
           <div className="flex justify-around items-center">
-            <button onClick={goBack} disabled={currentQ <= 0 || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", currentQ > 0 ? "border-2 border-slate-200 text-slate-500 shadow-[0_2px_0_#e2e8f0] active:shadow-none" : "border-2 border-slate-100 text-slate-300")}>
+            <button onClick={goBack} disabled={currentQ <= 0 || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", currentQ > 0 ? "bg-white/90 border-2 border-slate-200 text-slate-600 shadow-[0_2px_0_#e2e8f0] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
               <ChevronLeft size={22} />
               <span className="mt-1">戻る</span>
             </button>
@@ -384,7 +384,7 @@ export default function Interview() {
                 <span className="text-xs mt-1">{textInput ? "再録音" : "話す"}</span>
               </button>
             )}
-            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "border-2 border-slate-200 text-slate-500 shadow-[0_2px_0_#e2e8f0] active:shadow-none" : "border-2 border-slate-100 text-slate-300")}>
+            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "bg-white/90 border-2 border-slate-200 text-slate-600 shadow-[0_2px_0_#e2e8f0] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
               <ChevronRight size={22} />
               <span className="mt-1">次へ</span>
             </button>

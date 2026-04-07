@@ -161,6 +161,7 @@ export default function Interview() {
   // 質問切り替え時にprevTextRefをリセット（新しい質問用のテキスト蓄積を開始）
   const resetTextForNewQuestion = useCallback(() => {
     prevTextRef.current = "";
+    store.setTextInput("");
     // SpeechRecognitionのresultIndexはリセットできないので、
     // 一旦stop→startで新しいセッションにする
     const r = recognitionRef.current;
@@ -238,6 +239,9 @@ export default function Interview() {
     setSlideDir(1);
     setShowInput(false);
     store.addAnswer(textInput.trim());
+    // 即座にテキスト表示をクリア（リアクション再生中に前の回答が残らないように）
+    store.setTextInput("");
+    prevTextRef.current = "";
 
     setDisplayText(QUESTIONS[currentQ].reaction);
     playAudio(`r${currentQ + 1}`, QUESTIONS[currentQ].reaction, () => {
@@ -266,6 +270,8 @@ export default function Interview() {
     setSlideDir(-1);
     setShowInput(false);
     store.popAnswer();
+    store.setTextInput("");
+    prevTextRef.current = "";
     resetTextForNewQuestion();
     setDisplayText(QUESTIONS[currentQ - 1].q);
     playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q, () => setShowInput(true));

@@ -428,17 +428,14 @@ export default function Interview() {
         </AnimatePresence>
 
         {screen === "question" ? (
-          <div className="flex justify-center items-center gap-6">
+          <div className="flex justify-between items-center">
             <button onClick={goBack} disabled={currentQ <= 0 || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", currentQ > 0 ? "bg-white/90 border-2 border-slate-200 text-slate-600 shadow-[0_2px_0_#e2e8f0] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
               <ChevronLeft size={22} />
               <span className="mt-1">戻る</span>
             </button>
-            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[100px] h-[100px] flex flex-col items-center justify-center rounded-2xl text-base font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
-              <ChevronRight size={26} />
+            <button onClick={submitAnswer} disabled={!textInput.trim() || isSpeaking} className={clsx("w-[80px] h-[80px] flex flex-col items-center justify-center rounded-2xl text-sm font-bold transition-all active:translate-y-[1px]", textInput.trim() ? "bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:shadow-none" : "bg-white/50 border-2 border-slate-100 text-slate-300")}>
+              <ChevronRight size={22} />
               <span className="mt-1">次へ</span>
-            </button>
-            <button onClick={goBack} disabled className="w-[80px] h-[80px] invisible">
-              {/* スペーサー（中央寄せ用） */}
             </button>
           </div>
         ) : screen === "complete" ? (

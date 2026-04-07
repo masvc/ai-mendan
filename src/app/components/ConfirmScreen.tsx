@@ -54,7 +54,7 @@ export default function ConfirmScreen({
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* 完了メッセージ */}
         <div className="px-6 pt-8 pb-6 text-center">
-          <CircleCheckBig size={44} className="text-[#4a9e8e] mx-auto mb-4" />
+          <CircleCheckBig size={44} className="text-[#4a9e8e] block mx-auto mb-4" />
           <h2 className="text-slate-800 text-2xl font-black">お疲れさまでした！</h2>
           <p className="text-slate-400 text-base mt-3">連絡先を入力して提出してください</p>
         </div>

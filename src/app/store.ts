@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Screen = "title" | "question" | "confirm" | "complete" | "myrecord";
+type Screen = "title" | "question" | "confirm" | "complete";
 
 interface InterviewState {
   screen: Screen;
@@ -10,7 +10,6 @@ interface InterviewState {
   textInput: string;
   nickname: string;
   contact: string;
-  voice: "aoyama" | "kenzaki";
   // actions
   setScreen: (s: Screen) => void;
   setCurrentQ: (n: number) => void;
@@ -19,7 +18,6 @@ interface InterviewState {
   setTextInput: (t: string) => void;
   setNickname: (n: string) => void;
   setContact: (c: string) => void;
-  setVoice: (v: "aoyama" | "kenzaki") => void;
   reset: () => void;
   hasProgress: () => boolean;
 }
@@ -31,7 +29,6 @@ const INITIAL = {
   textInput: "",
   nickname: "",
   contact: "",
-  voice: "aoyama" as const,
 };
 
 export const useInterviewStore = create<InterviewState>()(
@@ -51,11 +48,10 @@ export const useInterviewStore = create<InterviewState>()(
       setTextInput: (textInput) => set({ textInput }),
       setNickname: (nickname) => set({ nickname }),
       setContact: (contact) => set({ contact }),
-      setVoice: (voice) => set({ voice }),
       reset: () => set(INITIAL),
       hasProgress: () => {
         const s = get();
-        return s.screen !== "title" && (s.answers.length > 0 || s.currentQ > 0);
+        return s.answers.length > 0 || s.currentQ > 0;
       },
     }),
     {
@@ -68,7 +64,6 @@ export const useInterviewStore = create<InterviewState>()(
         textInput: state.textInput,
         nickname: state.nickname,
         contact: state.contact,
-        voice: state.voice,
       }),
     }
   )

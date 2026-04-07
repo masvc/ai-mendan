@@ -32,7 +32,7 @@ export const QUESTIONS = [
 
 export default function Interview() {
   const store = useInterviewStore();
-  const { screen, currentQ, answers, textInput, nickname, contact, voice } = store;
+  const { screen, currentQ, answers, textInput, nickname, contact } = store;
 
   const [displayText, setDisplayText] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -40,6 +40,7 @@ export default function Interview() {
   const [audioBlobs, setAudioBlobs] = useState<Blob[]>([]);
   const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const [hasHistory, setHasHistory] = useState(false);
+  const [showInput, setShowInput] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -60,6 +61,7 @@ export default function Interview() {
     const unsub = useInterviewStore.subscribe((s) => {
       if (s.screen === "question" && s.answers.length > 0) {
         setDisplayText(QUESTIONS[s.currentQ]?.q || "");
+        setShowInput(true);
         toast("前回の続きから再開します", { duration: 3000 });
       } else if (s.screen === "confirm") {
         setDisplayText("全部の質問が終わったよ！回答内容を確認して、よければ提出してね。");
@@ -74,13 +76,13 @@ export default function Interview() {
   // --- 音声再生 ---
   const playAudio = useCallback((audioKey: string, _text: string, onEnd?: () => void) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    const audio = new Audio(`/audio/${voice}/${audioKey}.wav?v=2`);
+    const audio = new Audio(`/audio/kenzaki/${audioKey}.wav?v=2`);
     audioRef.current = audio;
     audio.onplay = () => setIsSpeaking(true);
     audio.onended = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
     audio.onerror = () => { setIsSpeaking(false); audioRef.current = null; onEnd?.(); };
     audio.play().catch(() => { setIsSpeaking(false); onEnd?.(); });
-  }, [voice]);
+  }, []);
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -134,12 +136,13 @@ export default function Interview() {
   const startInterview = () => {
     store.setScreen("question");
     store.setCurrentQ(0);
+    setShowInput(false);
     setDisplayText(CONFIG.greeting1);
     playAudio("greeting1", CONFIG.greeting1, () => {
       setDisplayText(CONFIG.greeting2);
       playAudio("greeting2", CONFIG.greeting2, () => {
         setDisplayText(QUESTIONS[0].q);
-        playAudio("q1", QUESTIONS[0].q);
+        playAudio("q1", QUESTIONS[0].q, () => setShowInput(true));
       });
     });
   };
@@ -148,8 +151,9 @@ export default function Interview() {
     const safeQ = Math.min(currentQ, QUESTIONS.length - 1);
     store.setScreen("question");
     store.setCurrentQ(safeQ);
+    setShowInput(false);
     setDisplayText(QUESTIONS[safeQ].q);
-    playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q);
+    playAudio(`q${safeQ + 1}`, QUESTIONS[safeQ].q, () => setShowInput(true));
     toast("続きから再開します");
   };
 
@@ -157,6 +161,7 @@ export default function Interview() {
     if (!textInput.trim()) return;
     stopAudio(); stopRecording();
     setSlideDir(1);
+    setShowInput(false);
     store.addAnswer(textInput.trim());
 
     setDisplayText(QUESTIONS[currentQ].reaction);
@@ -165,7 +170,7 @@ export default function Interview() {
         const next = currentQ + 1;
         store.setCurrentQ(next);
         setDisplayText(QUESTIONS[next].q);
-        playAudio(`q${next + 1}`, QUESTIONS[next].q);
+        playAudio(`q${next + 1}`, QUESTIONS[next].q, () => setShowInput(true));
       } else {
         const confirmMsg = "全部の質問が終わったよ！回答内容を確認して、よければ提出してね。";
         setDisplayText(confirmMsg);
@@ -180,9 +185,10 @@ export default function Interview() {
     if (currentQ <= 0) return;
     stopAudio(); stopRecording();
     setSlideDir(-1);
+    setShowInput(false);
     store.popAnswer();
     setDisplayText(QUESTIONS[currentQ - 1].q);
-    playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q);
+    playAudio(`q${currentQ}`, QUESTIONS[currentQ - 1].q, () => setShowInput(true));
   };
 
   const submitContact = async () => {
@@ -251,16 +257,6 @@ export default function Interview() {
           <p className="text-slate-700 text-2xl font-bold">履歴書なし・スマホで10分</p>
           <p className="text-slate-400 text-lg mt-2">匿名OK / 音声で回答 / 8問</p>
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col items-center">
-          <div className="flex gap-3 justify-center">
-            {([["aoyama", "音声A", "青山龍星"], ["kenzaki", "音声B", "剣崎雌雄"]] as const).map(([k, label, sub]) => (
-              <button key={k} onClick={() => store.setVoice(k)} className={clsx("w-[110px] h-[70px] rounded-2xl text-sm font-bold transition-all duration-150 active:translate-y-[1px] flex flex-col items-center justify-center gap-0.5", voice === k ? "bg-slate-800 text-white shadow-[0_2px_0_#0f172a]" : "bg-white text-slate-500 border-2 border-slate-200 shadow-[0_2px_0_#e2e8f0]")}>
-                <span>{label}</span>
-                <span className="text-xs opacity-70">{sub}</span>
-              </button>
-            ))}
-          </div>
-        </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45 }} className="flex flex-col items-center gap-4">
           <div className="flex gap-4">
             <button onClick={() => { store.reset(); startInterview(); }} className="w-[130px] h-[130px] flex flex-col items-center justify-center rounded-3xl font-bold text-lg bg-[#1e293b] text-white shadow-[0_2px_0_#0f172a] active:translate-y-[1px] active:shadow-none transition-all gap-1">
@@ -272,10 +268,13 @@ export default function Interview() {
               <span>続きから</span>
             </button>
           </div>
+          {hasProgress && (
+            <p className="text-slate-400 text-sm text-center">Q{Math.min(answers.length + 1, QUESTIONS.length)}まで保存済み</p>
+          )}
           {hasHistory && (
-            <button onClick={() => store.setScreen("myrecord")} className="text-sm text-slate-400 underline underline-offset-2">
+            <a href="/results" className="text-sm text-slate-400 underline underline-offset-2">
               提出済みの回答を見る
-            </button>
+            </a>
           )}
         </motion.div>
         <div className="text-center">
@@ -304,58 +303,6 @@ export default function Interview() {
     );
   }
 
-  // ===== 自分の回答記録 =====
-  if (screen === "myrecord") {
-    const history = JSON.parse(localStorage.getItem("ai-mendan-history") || "[]") as { date: string; nickname: string; answers: { question: string; answer: string }[] }[];
-    const latest = history[history.length - 1];
-    return (
-      <div className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] bg-slate-100 flex flex-col">
-        {/* ヘッダー */}
-        <div className="bg-white border-b border-slate-200 px-5 py-3 flex items-center justify-between shrink-0">
-          <button onClick={() => store.setScreen("title")} className="flex items-center gap-1 text-slate-400 active:text-slate-600 transition-colors">
-            <Home size={18} />
-            <span className="text-xs font-bold">トップ</span>
-          </button>
-          <p className="text-sm font-bold text-slate-800">提出済みの回答</p>
-          <div className="w-[60px]" />
-        </div>
-
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {latest ? (
-            <div className="px-4 py-5 space-y-4">
-              {/* 応募者情報 */}
-              <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4 flex justify-between items-center">
-                <p className="text-slate-800 text-lg font-bold">{latest.nickname}</p>
-                <p className="text-slate-400 text-sm">{new Date(latest.date).toLocaleDateString("ja-JP")}</p>
-              </div>
-
-              {/* 回答一覧 */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div className="px-5 py-3 border-b border-slate-200 bg-slate-50">
-                  <h3 className="text-sm font-bold text-slate-500">回答内容</h3>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {latest.answers.map((a, i) => (
-                    <div key={i} className="px-5 py-4">
-                      <p className="text-[#4a9e8e] text-xs font-bold mb-1.5">Q{i + 1}. {a.question}</p>
-                      <p className="text-slate-800 text-[15px] leading-relaxed">{a.answer || <span className="text-slate-300">（未回答）</span>}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <p className="text-slate-300 text-xs text-center">※内容はスタッフが確認し、2日以内にご連絡します</p>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-slate-400">まだ提出記録がありません</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   // ===== 面談画面（質問 + 完了） =====
   return (
     <div {...swipeHandlers} className="mx-auto h-dvh w-full max-w-[430px] max-h-[932px] relative bg-slate-100 overflow-hidden">
@@ -373,9 +320,9 @@ export default function Interview() {
 
       {/* トップバー */}
       <div className="absolute top-3 left-4 right-4 z-20 flex justify-between items-center">
-        <button onClick={() => { stopAudio(); stopRecording(); store.setScreen("title"); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors">
+        <button onClick={() => { stopAudio(); stopRecording(); store.setScreen("title"); toast("回答は自動保存済み。「続きから」で再開できます", { duration: 3000 }); }} className="flex items-center gap-1 text-slate-500 active:text-slate-800 transition-colors">
           <Home size={18} />
-          <span className="text-xs font-bold">トップ</span>
+          <span className="text-xs font-bold">中断する</span>
         </button>
         {screen === "question" && (
           <p className="text-slate-800 text-lg font-bold">残り{QUESTIONS.length - currentQ}問</p>
@@ -396,9 +343,19 @@ export default function Interview() {
           </motion.div>
         </AnimatePresence>
 
-        {screen === "question" && (isRecording || textInput) && (
-          <AnswerBox textInput={textInput} isRecording={isRecording} />
-        )}
+        <AnimatePresence>
+          {screen === "question" && showInput && (
+            <motion.div
+              key="answer-box"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnswerBox textInput={textInput} isRecording={isRecording} onTextChange={store.setTextInput} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {screen === "question" ? (
           <div className="flex justify-around items-center">

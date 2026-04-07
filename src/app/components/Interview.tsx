@@ -65,11 +65,11 @@ export default function Interview() {
   }, []);
 
   // --- マイク（1本通し） ---
-  const startMic = useCallback(() => {
-    if (recognitionRef.current) return;
+  const startMic = useCallback((onReady?: () => void) => {
+    if (recognitionRef.current) { onReady?.(); return; }
 
     const API = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-    if (!API) { toast.error("このブラウザは音声入力に対応していません"); return; }
+    if (!API) { toast.error("このブラウザは音声入力に対応していません"); onReady?.(); return; }
 
     baseTextRef.current = "";
     store.setTextInput("");
@@ -90,7 +90,6 @@ export default function Interview() {
     };
     r.onend = () => {
       if (recognitionRef.current === r) {
-        // 再起動前にテキストを保持（スマホで勝手に止まる対策）
         baseTextRef.current = useInterviewStore.getState().textInput;
         try { r.start(); } catch { /* ignore */ }
       }
@@ -99,14 +98,15 @@ export default function Interview() {
     try { r.start(); } catch { /* ignore */ }
     setIsListening(true);
 
-    // 録音
+    // 録音（許可完了後にonReady）
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       chunksRef.current = [];
       const mr = new MediaRecorder(stream);
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.start();
       mediaRecorderRef.current = mr;
-    }).catch(() => {});
+      onReady?.();
+    }).catch(() => { onReady?.(); });
   }, [store]);
 
   const stopMic = useCallback(() => {
@@ -137,10 +137,11 @@ export default function Interview() {
     playAudio("greeting1", () => {
       setDisplayText(CONFIG.greeting2);
       playAudio("greeting2", () => {
-        // greeting2が終わってからマイク許可→Q1
-        startMic();
-        setDisplayText(`Q1. ${QUESTIONS[0].q}`);
-        setShowInput(true);
+        // greeting2が終わってからマイク許可→許可完了後にQ1表示
+        startMic(() => {
+          setDisplayText(`Q1. ${QUESTIONS[0].q}`);
+          setShowInput(true);
+        });
       });
     });
   };

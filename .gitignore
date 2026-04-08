@@ -42,6 +42,10 @@ next-env.d.ts
 
 review.md
 mail.md
+proposal.md
+proposal.pdf
+proposal-style.css
+reply-draft.md
 
 # screenshots (originals at root)
 /top.png

@@ -40,15 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-review.md
-mail.md
-proposal.md
-proposal.pdf
-proposal-style.css
-reply-draft.md
-status.md
-
-# screenshots (originals at root)
-/top.png
-/shohei.png
-/aireport.png
+# local work files (mail, proposals, drafts, reviews)
+/.local/
